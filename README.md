@@ -10,6 +10,7 @@
     conda activate mpmf
     conda install -c conda-forge stumpy
     conda deactivate
+    conda env remove -n mpmf
 ```
 ## Project Structure
 ## Corresponding Paper
