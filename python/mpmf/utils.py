@@ -6,7 +6,7 @@ from stumpy import config, core
 def get_motif_information_old(T, m, l=1):
     print("hi")
 
-def get_top_1_motif(T, m, l=1):
+def get_top_1_motif(T, m, l=1, include_itself = False):
     """Get the motif information for the time series T.
     
     Parameters
@@ -27,21 +27,32 @@ def get_top_1_motif(T, m, l=1):
         - top_1_motif_dist: Distances of the top-1 motifs.
         - top_1_motif_points_after: Points after the motifs.
     """
+    print("get_top_1_motif")
     mp = stumpy.stump(T, m = m)
     
     top_1_motif_dist = np.full(len(T), np.nan)
     top_1_motif_idx = np.full(len(T), np.nan)
     top_1_motif_idx_delta = np.full(len(T), np.nan)
     top_1_motif_points_after = np.full((len(T), l), np.nan)
-    for i in range(m, len(T)):
-        q_idx = i - m
+    
+    if include_itself:
+         first_i_idx = m-1
+    else:
+         first_i_idx = m
+
+    for i in range(first_i_idx, len(T)):
+        if include_itself:
+            q_idx = i - (m - 1)
+        else:
+            q_idx = i - m
+
         j = mp.left_I_[q_idx]
         if j >= 0:  # We have found a top-1 motif of q
             top_1_motif_idx[i] = j
             # Single point
             # if j + m < len(T):
             #     top_1_motif_point_after[i] = T[j + m]
-            # l points
+            # l points after the motif
             for ll in range(l):
                 tgt_idx = j + m + ll
                 if tgt_idx < len(T):
@@ -59,15 +70,24 @@ def get_top_1_motif(T, m, l=1):
             })
     return df_motif
 
-def get_top_k_motifs(T, m, k=1, l=1):
+def get_top_k_motifs(T, m, k=1, l=1, include_itself = False):
     # https://github.com/stumpy-dev/stumpy/discussions/1093#discussioncomment-14063985
+
+    print("get_top_k_motifs")
     top_k_motif_dist = np.full((len(T), k), np.nan)
     top_k_motif_idx = np.full((len(T), k), np.nan)
     top_k_motif_idx_delta = np.full((len(T), k), np.nan)
     top_k_motif_points_after = np.full((len(T), k, l), np.nan)
 
-    for i in range(m, len(T)):
-        stop_idx = i
+    if include_itself:
+         first_i_idx = m-1
+    else:
+         first_i_idx = m
+    for i in range(first_i_idx, len(T)):
+        if include_itself:
+            stop_idx = i + 1
+        else:
+            stop_idx = i
         start_idx = stop_idx - m
         T_prime = T[start_idx : stop_idx]
         # print(f"i={i}, start_idx={start_idx}, stop_idx={stop_idx}, T_prime={T_prime}")
@@ -75,9 +95,7 @@ def get_top_k_motifs(T, m, k=1, l=1):
         # Apply exclusion zone
         # https://github.com/stumpy-dev/stumpy/blob/534488d0b84f2bc20d529e6c46daf62c497f5f2b/stumpy/core.py#L2078
         excl_zone = int(np.ceil(m / config.STUMPY_EXCL_ZONE_DENOM))
-        # core.apply_exclusion_zone(T_copy, start_idx, excl_zone, np.nan)
         # Clear all values to the right of the start index
-        # T_copy[start_idx+excl_zone:] = np.nan
         T_copy[start_idx - excl_zone - 1 + m:] = np.nan
         matches = stumpy.match(T_prime, T_copy, max_matches=k)
         # print(f"i={i}, matches={matches}")
