@@ -1,0 +1,99 @@
+python/evaluate_multi_step.ipynb
+python/evaluate_recursive.ipynb
+python/evaluate_true_prior.ipynb
+python/include_top_1_motif.ipynb
+python/include_top_k_motif_families.ipynb
+python/include_top_k_motifs.ipynb
+python/preprocess_electricity.ipynb
+python/preprocess_PJME_hourly.ipynb
+data/
+
+
+legacy/
+# evaluate_multi_step.ipynb
+# python/mpmf/utils.py
+xgboost_time_series-main/
+test*.ipynb
+
+# -----------------------
+# Python
+# -----------------------
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# -----------------------
+# R
+# -----------------------
+# R data files
+*.RData
+*.Rhistory
+*.Rapp.history
+.RDataTmp
+
+# R environment files
+.Rproj.user/
+.Renviron
+.Rprofile
+
+# RStudio project files
+*.Rproj
+
+# Packrat / renv (R dependency management)
+packrat/
+renv/
+renv.lock
+
+# -----------------------
+# Jupyter Notebook
+# -----------------------
+.ipynb_checkpoints/
+
+# -----------------------
+# macOS
+# -----------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# -----------------------
+# Editors / IDEs
+# -----------------------
+# VS Code
+.vscode/
+.history/
+
+# PyCharm / IntelliJ
+.idea/
+
+# -----------------------
+# Others
+# -----------------------
+*.log
