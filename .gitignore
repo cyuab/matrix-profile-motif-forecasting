@@ -7,6 +7,7 @@ python/include_top_k_motifs.ipynb
 python/preprocess_electricity.ipynb
 python/preprocess_PJME_hourly.ipynb
 data/
+data_intermediate/
 
 
 legacy/
@@ -97,3 +98,4 @@ Temporary Items
 # Others
 # -----------------------
 *.log
+python/environment_information.ipynb
