@@ -4,7 +4,6 @@ import stumpy
 from stumpy import config, core
 import re
 import warnings
-import sys
 import sys, os
 
 
@@ -213,26 +212,3 @@ def compute_point_after_average(df, method="unweighted"):
         else:
             raise ValueError("Method must be 'weighted' or 'unweighted'.")
     return results
-
-
-def mean_absolute_percentage_error(y_true, y_pred):
-    a = y_true - y_pred
-    b = y_true
-    c = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
-    return np.mean(np.abs(c)) * 100
-
-
-def print_prediction_results(prediction, Y_Test_Full):
-    # print('prediction ',prediction.shape)
-    # print('test ',Y_Test_Full.shape)
-    MSE = np.mean((prediction - Y_Test_Full) ** 2)
-    MAE = np.mean(np.abs((prediction - Y_Test_Full)))
-    MAPE = mean_absolute_percentage_error(Y_Test_Full, prediction)
-    WAPE = np.sum(np.abs(prediction - Y_Test_Full)) / np.sum(np.abs(Y_Test_Full))
-    # print('With Features for {} weeks'.format(No_Of_weeks))
-    # print('With Features for {} weeks'.format(No_Of_weeks))
-
-    print("RMSE: ", MSE**0.5)
-    print("WAPE: ", WAPE)
-    print("MAE: ", MAE)
-    # print('MAPE: ',MAPE)
