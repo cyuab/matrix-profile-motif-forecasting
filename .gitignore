@@ -1,20 +1,9 @@
-python/evaluate_multi_step.ipynb
-python/evaluate_recursive.ipynb
-python/evaluate_true_prior.ipynb
-python/include_top_1_motif.ipynb
-python/include_top_k_motif_families.ipynb
-python/include_top_k_motifs.ipynb
-python/preprocess_electricity.ipynb
-python/preprocess_PJME_hourly.ipynb
+legacy/
+*temp.ipynb
+test*.ipynb
+
 data/
 data_intermediate/
-python/environment_information.ipynb
-
-legacy/
-# evaluate_multi_step.ipynb
-# python/mpmf/utils.py
-xgboost_time_series-main/
-test*.ipynb
 
 # -----------------------
 # Python

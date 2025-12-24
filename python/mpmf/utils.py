@@ -7,10 +7,6 @@ import warnings
 import sys, os
 
 
-def print_hello_world():
-    print("Hello, world!")
-
-
 def get_top_1_motif(T, m, l=1, include_itself=False):
     """Get the motif information for the time series T.
 

@@ -16,6 +16,7 @@
   - [Commit 9b14dc9](https://github.com/Daniela-Shereen/GBRT-for-TSF/tree/9b14dc957cb2f33fc4a04566d9c140dc2b2a3014) (Accessed on 2025-12-23)
 
 ## Datasets
+They will be uploaded to zenodo.
 - Electricity [sen2019think]
 - Traﬃc [sen2019think]
 - PeMSD7 [sen2019think]
@@ -30,28 +31,3 @@
 ## Corresponding Paper
 ### Figures/Tables in the Paper
 ## Contacts
-
----
----
----
-# GBRT-for-TSF
-
-This read me file describes the steps to run the code for "Do We Really Need Deep Learning Models for 
-Time Series Forecasting?" paper.
-
-## Requirements*
-* 1- numpy
-* 2- pandas
-* 3- XGBoost python library 
-* 4- scikit-learn
-
-
-## Datasets
-
-Download the datasets and place them in the respective "Uni-" and/or "Multivariate" folders in the Data folder.
-
-## Runing files
-
-To run any of the scripts it is required to check the "data_path" of the required file, then running command is 
-
- - python file_name e.g. "python xgboostWB_electricity.py"

@@ -1,8 +1,7 @@
 import numpy as np
 import random
-from random import shuffle
-
 random.seed(42)
+
 import xgboost as xgb
 from sklearn.multioutput import MultiOutputRegressor
 
@@ -14,8 +13,9 @@ def evaluate_with_xgboost(
     X_Test_Full,
     Y_Test_Full,
     xgboost_parameters,
+    include_covariates =True,
 ):
-    # ---------------------shuffle windows  X and target Y togethe-------------------------------------
+    # ---------------------shuffle windows  X and target Y together-------------------------------------
     combined = list(zip(x_batches_Full, y_batches_Full))
     random.shuffle(combined)
     shuffled_batch_features, shuffled_batch_y = zip(*combined)
@@ -26,37 +26,43 @@ def evaluate_with_xgboost(
     # =============== flatten each training window into Instance =================================
     for i in range(0, len(shuffled_batch_features)):
         hold = []
-        temp = []
+        # temp = []
         for j in range(0, len(shuffled_batch_features[i])):
             # **************** to run without features -->comment if else condition (just keep else statement) **************************
-            if j == (len(shuffled_batch_features[i]) - 1):
-                hold = np.concatenate(
-                    (hold, shuffled_batch_features[i][j][:]), axis=None
-                )
+            if include_covariates:
+                if j == (len(shuffled_batch_features[i]) - 1):
+                    hold = np.concatenate(
+                        (hold, shuffled_batch_features[i][j][:]), axis=None
+                    )
+                else:
+                    hold = np.concatenate(
+                        (hold, shuffled_batch_features[i][j][0]), axis=None
+                    )
             else:
                 hold = np.concatenate(
-                    (hold, shuffled_batch_features[i][j][0]), axis=None
-                )
+                        (hold, shuffled_batch_features[i][j][0]), axis=None
+                    )
 
         All_Training_Instances.append(hold)
-
-    # print(len(All_Training_Instances[0]))
 
     # =============== change each window into Instance =================================
     All_Testing_Instances = []
     for i in range(0, len(X_Test_Full)):
         hold = []
-        temp = []
+        # temp = []
         for j in range(0, len(X_Test_Full[i])):
             # **************** to run without features -->comment if else condition (just keep else statement) **************************
-            if j == (len(X_Test_Full[i]) - 1):
-                hold = np.concatenate((hold, X_Test_Full[i][j][:]), axis=None)
+            if include_covariates:
+                if j == (len(X_Test_Full[i]) - 1):
+                    hold = np.concatenate((hold, X_Test_Full[i][j][:]), axis=None)
+                else:
+                    hold = np.concatenate((hold, X_Test_Full[i][j][0]), axis=None)
             else:
-                hold = np.concatenate((hold, X_Test_Full[i][j][0]), axis=None)
+                hold = np.concatenate(
+                        (hold, shuffled_batch_features[i][j][0]), axis=None
+                    )
 
-    All_Testing_Instances.append(hold)
-
-    # print(len(All_Testing_Instances[0]))
+        All_Testing_Instances.append(hold)
 
     # =========================== final shape check =========================
     All_Testing_Instances = np.reshape(
@@ -74,33 +80,17 @@ def evaluate_with_xgboost(
     )
 
     # =========================== CALLING XGBOOST ===========================
-    # model=xgb.XGBRegressor(learning_rate=0.2,
-    # n_estimators=800,
-    # max_depth=8,
-    # min_child_weight=1,
-    # gamma=0.0,
-    # subsample=0.8,
-    # colsample_bytree=0.8,
-    # scale_pos_weight=1,
-    # #  seed=42,silent=False
-    # random_state=42,verbosity=1
-    # )
     model = xgb.XGBRegressor(**xgboost_parameters)
 
-    multioutput = MultiOutputRegressor(
-        model
-        #  ,n_jobs= 1 # ensures sequential fitting, avoids nondeterminism in threading
-    ).fit(All_Training_Instances, shuffled_batch_y)
-
-    # print('Fitting Done!')
+    multioutput = MultiOutputRegressor(model).fit(All_Training_Instances, shuffled_batch_y)
 
     # ============================== PREDICTION ===============================
     prediction = multioutput.predict(All_Testing_Instances)
     MSE = np.mean((prediction - Y_Test_Full) ** 2)
+    WAPE = np.sum(np.abs(prediction - Y_Test_Full)) / np.sum(np.abs(Y_Test_Full))
     MAE = np.mean(np.abs((prediction - Y_Test_Full)))
     MAPE = np.mean((np.abs(prediction - Y_Test_Full) / np.abs(Y_Test_Full)))
-    WAPE = np.sum(np.abs(prediction - Y_Test_Full)) / np.sum(np.abs(Y_Test_Full))
     print("RMSE: ", MSE**0.5)
     print("WAPE: ", WAPE)
     print("MAE: ", MAE)
-    # print('MAPE: ',MAPE)
+    print('MAPE: ',MAPE)
