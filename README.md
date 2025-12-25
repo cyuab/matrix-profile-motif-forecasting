@@ -28,6 +28,8 @@ They will be uploaded to zenodo.
 - [lai2018modeling] "Modeling Long- and Short-Term Temporal Patterns with Deep Neural Networks" [(code)](https://github.com/fbadine/LSTNet)
 
 ## Project Structure
+- GBRT_Univariate: The original code from "Do We Really Need Deep Learning Models for Time Series Forecasting?" with little modifications such that it can be run in our environment.
+- environment_information.ipynb: Environment information.
 ## Corresponding Paper
 ### Figures/Tables in the Paper
 ## Contacts
