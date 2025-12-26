@@ -2,9 +2,6 @@ legacy/
 *temp.ipynb
 test*.ipynb
 
-data/
-data_intermediate/
-
 # -----------------------
 # Python
 # -----------------------

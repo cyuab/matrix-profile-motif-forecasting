@@ -4,8 +4,7 @@ import stumpy
 from stumpy import config, core
 import re
 import warnings
-import sys, os
-
+# import sys, os
 
 def get_top_1_motif(T, m, l=1, include_itself=False):
     """Get the motif information for the time series T.

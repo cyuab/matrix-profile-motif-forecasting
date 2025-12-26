@@ -155,7 +155,9 @@ for i in range(0,len(shuffled_batch_features)):
     for j in range(0,len(shuffled_batch_features[i])):
       #**************** to run without features -->comment if else condition (just keep else statement) **************************
       if j==(len(shuffled_batch_features[i])-1):
-          hold=np.concatenate((hold, shuffled_batch_features[i][j][:]), axis=None)     
+        #   hold=np.concatenate((hold, shuffled_batch_features[i][j][:]), axis=None)     
+          hold=np.concatenate((hold, shuffled_batch_features[i][j][0]), axis=None)
+
       else:
           hold=np.concatenate((hold, shuffled_batch_features[i][j][0]), axis=None)
           
@@ -173,7 +175,9 @@ for i in range(0,len(X_Test_Full)):
   for j in range(0,len(X_Test_Full[i])):
       #**************** to run without features -->comment if else condition (just keep else statement) **************************
       if j==(len(X_Test_Full[i])-1):
-          hold=np.concatenate((hold, X_Test_Full[i][j][:]), axis=None)
+        #   hold=np.concatenate((hold, X_Test_Full[i][j][:]), axis=None)
+          hold=np.concatenate((hold, X_Test_Full[i][j][0]), axis=None)
+
       else:
           hold=np.concatenate((hold, X_Test_Full[i][j][0]), axis=None)
    
@@ -218,5 +222,3 @@ print('MAE: ',MAE)
 #print('With Features for {} weeks'.format(No_Of_weeks)) 
 print('MAPE: ',MAPE)
 #print('With Features for {} weeks'.format(No_Of_weeks)) 
-
-

@@ -5,6 +5,11 @@ random.seed(42)
 import xgboost as xgb
 from sklearn.multioutput import MultiOutputRegressor
 
+def mean_absolute_percentage_error(y_true, y_pred):
+    a = y_true - y_pred
+    b = y_true
+    c = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
+    return np.mean(np.abs(c)) * 100
 
 def evaluate_with_xgboost(
     num_periods_output,
@@ -58,9 +63,7 @@ def evaluate_with_xgboost(
                 else:
                     hold = np.concatenate((hold, X_Test_Full[i][j][0]), axis=None)
             else:
-                hold = np.concatenate(
-                        (hold, shuffled_batch_features[i][j][0]), axis=None
-                    )
+                hold = np.concatenate((hold, X_Test_Full[i][j][0]), axis=None)
 
         All_Testing_Instances.append(hold)
 
@@ -90,7 +93,10 @@ def evaluate_with_xgboost(
     WAPE = np.sum(np.abs(prediction - Y_Test_Full)) / np.sum(np.abs(Y_Test_Full))
     MAE = np.mean(np.abs((prediction - Y_Test_Full)))
     MAPE = np.mean((np.abs(prediction - Y_Test_Full) / np.abs(Y_Test_Full)))
+    MAPE2 = mean_absolute_percentage_error(Y_Test_Full, prediction)
     print("RMSE: ", MSE**0.5)
     print("WAPE: ", WAPE)
     print("MAE: ", MAE)
     print('MAPE: ',MAPE)
+    print('MAPE2: ',MAPE2)
+    return (MSE**0.5), WAPE, MAE, MAPE
