@@ -4,15 +4,13 @@
 
 ## Installation
 ```
-    # mpmf stands for Matrix Profile Motif Forecasting (i.e., the repository name).
     conda create -n mpmf python=3.10 pandas numpy matplotlib seaborn scikit-learn xgboost 
     conda activate mpmf
     conda install -c conda-forge stumpy
     conda deactivate
     conda env remove -n mpmf
 ```
-- We employ the code of [[elsayed2021we]](#elsayed2021we).
-  - [Commit 9b14dc9](https://github.com/Daniela-Shereen/GBRT-for-TSF/tree/9b14dc957cb2f33fc4a04566d9c140dc2b2a3014) (Accessed on 2025-12-23)
+- "mpmf" stands for **m**atrix-**p**rofile-**m**otif-**f**orecasting (i.e., the repository name).
 
 ## Datasets
 - Electricity [[sen2019think]](#sen2019think)
@@ -21,8 +19,8 @@
 - Exchange-Rate [[lai2018modeling]](#lai2018modeling)
 
 ## Project Structure
-- GBRT_Univariate: The original code from [[elsayed2021we]](#elsayed2021we) with little modifications such that it can be run in our environment.
-- environment_information.ipynb: Environment information.
+- GBRT_Univariate/: The original code ([Commit 9b14dc9](https://github.com/Daniela-Shereen/GBRT-for-TSF/tree/9b14dc957cb2f33fc4a04566d9c140dc2b2a3014), accessed on 2025-12-23) from [[elsayed2021we]](#elsayed2021we) with little modifications such that it can be run in our environment and the result is reproducible by setting the random seed.
+- environment_information.ipynb: Check environment information.
   
 ## Corresponding Paper
 ### Figures/Tables in the Paper

@@ -1,7 +1,4 @@
-results/
-
-*temp.ipynb
-test*.ipynb
+*temp*.ipynb
 
 # -----------------------
 # Python
