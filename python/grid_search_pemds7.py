@@ -42,6 +42,7 @@ def New_preprocessing(
     num_periods_input,
     num_periods_output,
     include_itself,
+    include_covariates,
     include_motif_information,
     k_motifs,
     no_points_after_motif,
@@ -175,6 +176,18 @@ def New_preprocessing(
     y_testbatches = y_testbatches.reshape(-1, num_periods_output, 1)
     x_testbatches = np.asarray(x_testbatches)
     x_testbatches = x_testbatches.reshape(-1, num_periods_input, Number_Of_Features)
+    if include_covariates and include_motif_information:
+        pass
+    elif include_covariates and (not include_motif_information):
+        pass
+    elif (not include_covariates) and include_motif_information:
+        selected_cols = np.r_[
+            0, len(headers) : len(headers) + len(df_motif.columns.tolist())
+        ]
+        x_batches = x_batches[:, :, selected_cols]
+        x_testbatches = x_testbatches[:, :, selected_cols]
+    else: # (not include_covariates) and (not include_motif_information)
+        pass
     return x_batches, y_batches, x_testbatches, y_testbatches
 
 def run_grid_search(
@@ -236,6 +249,7 @@ def run_grid_search(
     for idx, (
         include_covariates,
         include_itself,
+        include_covariates,
         include_motif_information,
         k_motifs,
         no_points_after_motif,
