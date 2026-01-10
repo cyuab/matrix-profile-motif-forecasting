@@ -1,13 +1,24 @@
 """
-Grid Search for PEMDS7 Dataset
-
 Usage Example:
     python grid_search_pemds7.py \
-      --include_covariates True False \
-      --include_itself True \
-      --include_motif_information 1 \
-      --k_motifs 1 \
-      --no_points_after_motif 1
+        --include_covariates True False \
+        --no_time_series 5
+
+    python grid_search_pemds7.py \
+        --include_covariates True False \
+        --include_motif_information 1 \
+        --no_points_after_motif 1 5 9\
+        --do_normalization True False \
+        --include_similarity True False\
+        --no_time_series 5
+
+    python grid_search_pemds7.py \
+        --include_covariates True False \
+        --include_motif_information 2 \
+        --no_points_after_motif 1 5 9\
+        --do_normalization False \
+        --include_similarity True False\
+        --no_time_series 5
 """
 
 import pandas as pd
@@ -17,12 +28,12 @@ random.seed(42)
 from datetime import datetime, timedelta
 from sklearn import preprocessing
 from GBRT_for_TSF.utils import evaluate_with_xgboost
-from mpmf.utils import get_top_1_motif, get_top_k_motifs, compute_point_after_average
+from mpmf.utils import get_top_1_motif, get_top_1_motif_trend, get_top_k_motifs, compute_point_after_average
 
-# import sys
-# import os
 import itertools
 import argparse  # Added for command line arguments
+
+import time
 
 # Helper function to convert string inputs to booleans
 def str2bool(v):
@@ -44,9 +55,12 @@ def New_preprocessing(
     include_motif_information,
     k_motifs,
     no_points_after_motif,
+    do_normalization=False,
+    include_similarity=False
 ):
-    # print(len(TimeSeries))
     Data = []
+    # Change 1
+    #################################################################################################
     start_date = datetime(2012, 5, 1, 00, 00, 00)  # define start date
     for i in range(0, len(TimeSeries)):
         record = []
@@ -60,7 +74,6 @@ def New_preprocessing(
         record.append(start_date.isocalendar()[1])
         start_date = start_date + timedelta(minutes=5)
         Data.append(record)
-    ########## change list of lists to df ################
     headers = [
         "pems",
         "month",
@@ -78,71 +91,75 @@ def New_preprocessing(
     Normalized_Data_df = pd.DataFrame(
         np.column_stack([Data_df.iloc[:, 0], New_sub]), columns=headers
     )
-    if include_motif_information:
-        if include_motif_information == 1:  # get_top_1_motif
-            df_motif = get_top_1_motif(
-                TimeSeries,
-                num_periods_output,
-                l=no_points_after_motif,
-                include_itself=include_itself,
-            )
-            interested_features = [
-                c for c in df_motif.columns if (("idx" not in c) and ("dist" not in c))
-            ]
-            df_motif = df_motif[interested_features]
-        if include_motif_information == 2:  # get_top_k_motifs (Direct)
-            df_motif = get_top_k_motifs(
-                TimeSeries,
-                num_periods_output,
-                k=k_motifs,
-                l=no_points_after_motif,
-                include_itself=include_itself,
-            )
-            interested_features = [
-                c for c in df_motif.columns if (("idx" not in c) and ("dist" not in c))
-            ]
-            df_motif = df_motif[interested_features]
-        if include_motif_information == 3:  # get_top_k_motifs (Unweighted Average)
-            df_motif = get_top_k_motifs(
-                TimeSeries,
-                num_periods_output,
-                k=k_motifs,
-                l=no_points_after_motif,
-                include_itself=include_itself,
-            )
-            interested_features = [c for c in df_motif.columns if ("idx" not in c)]
-            df_motif = df_motif[interested_features]
-            df_motif = compute_point_after_average(df_motif)
-        if include_motif_information == 4:  # get_top_k_motifs (Weighted Average)
-            df_motif = get_top_k_motifs(
-                TimeSeries,
-                num_periods_output,
-                k=k_motifs,
-                l=no_points_after_motif,
-                include_itself=include_itself,
-            )
-            interested_features = [c for c in df_motif.columns if ("idx" not in c)]
-            df_motif = df_motif[interested_features]
-            df_motif = compute_point_after_average(df_motif, method="weighted")
-        # Normailize motif features to be from -0.5 to 0.5
-        New_df_motif = preprocessing.minmax_scale(df_motif, feature_range=(-0.5, 0.5))
-        # Convert the numpy array back to a DataFrame using the original columns and index
-        New_df_motif = pd.DataFrame(
-            New_df_motif, columns=df_motif.columns, index=df_motif.index
-        )
-        Normalized_Data_df = pd.concat([Normalized_Data_df, New_df_motif], axis=1)
-    # print(Normalized_Data_df)
     #################################################################################################
-    # cut training and testing training is 11232
-    Train = Normalized_Data_df.iloc[0:11232, :]
+    if include_motif_information:
+        if include_motif_information == 1 or include_motif_information == 2:  # get_top_1_motif
+            function_used = get_top_1_motif if include_motif_information == 1 else get_top_1_motif_trend
+            df_motif = function_used(
+                TimeSeries,
+                num_periods_output,
+                l=no_points_after_motif,
+                include_itself=include_itself,
+            )
+
+            df_motif_points = df_motif[[c for c in df_motif.columns if (("idx" not in c) and ("dist" not in c))]]
+
+            if do_normalization:
+                df_motif_points = df_motif_points.sub(df_motif_points.mean(axis=1), axis=0).div(df_motif_points.std(axis=1), axis=0)
+                df_motif_points = df_motif_points.replace([np.inf, -np.inf], np.nan)
+            
+            Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_points], axis=1)
+
+            if include_similarity:
+                df_motif_dist = df_motif[[c for c in df_motif.columns if ("dist" in c)]]
+                df_motif_dist = pd.DataFrame(preprocessing.minmax_scale(df_motif_dist, feature_range=(-0.5, 0.5)), columns=df_motif_dist.columns, index=df_motif_dist.index)
+                Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_dist], axis=1)
+
+        # if include_motif_information == 2:  # get_top_k_motifs (Direct)
+        #     df_motif = get_top_k_motifs(
+        #         TimeSeries,
+        #         num_periods_output,
+        #         k=k_motifs,
+        #         l=no_points_after_motif,
+        #         include_itself=include_itself,
+        #     )
+        #     interested_features = [
+        #         c for c in df_motif.columns if (("idx" not in c) and ("dist" not in c))
+        #     ]
+        #     df_motif = df_motif[interested_features]
+        # if include_motif_information == 3:  # get_top_k_motifs (Unweighted Average)
+        #     df_motif = get_top_k_motifs(
+        #         TimeSeries,
+        #         num_periods_output,
+        #         k=k_motifs,
+        #         l=no_points_after_motif,
+        #         include_itself=include_itself,
+        #     )
+        #     interested_features = [c for c in df_motif.columns if ("idx" not in c)]
+        #     df_motif = df_motif[interested_features]
+        #     df_motif = compute_point_after_average(df_motif)
+        # if include_motif_information == 4:  # get_top_k_motifs (Weighted Average)
+        #     df_motif = get_top_k_motifs(
+        #         TimeSeries,
+        #         num_periods_output,
+        #         k=k_motifs,
+        #         l=no_points_after_motif,
+        #         include_itself=include_itself,
+        #     )
+        #     interested_features = [c for c in df_motif.columns if ("idx" not in c)]
+        #     df_motif = df_motif[interested_features]
+        #     df_motif = compute_point_after_average(df_motif, method="weighted")
+
+    #################################################################################################
+    # Change 2
+    split_index = 11232
+    #################################################################################################
+    Train = Normalized_Data_df.iloc[0:split_index, :]
     Train = Train.values
     Train = Train.astype("float32")
-    # print('Traing length :',len(Train))
-    Test = Normalized_Data_df.iloc[(11232 - num_periods_input) :, :]
+    Test = Normalized_Data_df.iloc[(split_index - num_periods_input) :, :]
     Test = Test.values
     Test = Test.astype("float32")
-    # print('Traing length :',len(Test))
-    # Number_Of_Features = 8
     Number_Of_Features = Normalized_Data_df.shape[1]
     ############################################ Windowing ##################################
     end = len(Train)
@@ -174,13 +191,14 @@ def New_preprocessing(
     y_testbatches = y_testbatches.reshape(-1, num_periods_output, 1)
     x_testbatches = np.asarray(x_testbatches)
     x_testbatches = x_testbatches.reshape(-1, num_periods_input, Number_Of_Features)
+
     if include_covariates and include_motif_information:
         pass
     elif include_covariates and (not include_motif_information):
         pass
     elif (not include_covariates) and include_motif_information:
         selected_cols = np.r_[
-            0, len(headers) : len(headers) + len(df_motif.columns.tolist())
+            0, len(headers) : Normalized_Data_df.shape[1]
         ]
         x_batches = x_batches[:, :, selected_cols]
         x_testbatches = x_testbatches[:, :, selected_cols]
@@ -193,28 +211,31 @@ def run_grid_search(
     param_include_itself,
     param_include_motif_information,
     param_k_motifs,
-    param_no_points_after_motif
+    param_no_points_after_motif,
+    param_do_normalization,
+    param_include_similarity,
+    param_no_time_series,
 ):
+    # Change 3
+    #################################################################################################
     file_name = "pems.npy"
+    file_name_prefix = file_name.split('.')[0]
     data_path = r"../data/" + file_name
     data = np.load(data_path)
+    #################################################################################################
     data = pd.DataFrame(data)
+    if param_no_time_series[0] != -1:
+        data = data[: param_no_time_series[0]]
+    print("Data shape:", data.shape)
 
+    # Change 4
+    #################################################################################################
     num_periods_input = 9  # input
     num_periods_output = 9  # to predict
+    #################################################################################################
 
-    # # ================== Parameters that are going to be changed==================
-    # param_include_covariates = [
-    #     True, False
-    # ]  # True/False : whether to include features or not
-    # param_include_itself = [True]
-    # param_include_motif_information = [
-    #     1
-    # ]  # 0: no motif info; 1: Top-1 Motif; 2: Top-K Motifs (Direct); 3: Top-K Motifs (Average); 4: Top-K Motifs (Weighted Average)
-    # param_k_motifs = [1]  # 1, 3, 5
-    # param_no_points_after_motif = [1]  # number of points to consider: 1, ceil(m/2), m
-    # # ================================================
-
+    # Change 5
+    #################################################################################################
     xgboost_parameters = {
         "learning_rate": 0.045,
         "n_estimators": 150,
@@ -227,7 +248,7 @@ def run_grid_search(
         "random_state": 42,
         "verbosity": 1,  # 0=Silent, 1=Warning, 2=Info, 3=Debug
     }
-
+    #################################################################################################
     results = []
 
     # Create grid
@@ -238,6 +259,8 @@ def run_grid_search(
             param_include_motif_information,
             param_k_motifs,
             param_no_points_after_motif,
+            param_do_normalization,
+            param_include_similarity,
         )
     )
 
@@ -250,13 +273,17 @@ def run_grid_search(
         include_motif_information,
         k_motifs,
         no_points_after_motif,
+        do_normalization,
+        include_similarity,
     ) in enumerate(combinations):
+        start_time = time.time()
         print(
-            f"[{idx+1}/{total_combinations}] Running: include_covariates={include_covariates}, include_itself={include_itself}, include_motif_information={include_motif_information}, k_motifs={k_motifs}, no_points_after_motif={no_points_after_motif}"
+            f"[{idx+1}/{total_combinations}] Running: include_covariates={include_covariates}, include_itself={include_itself}, include_motif_information={include_motif_information}, k_motifs={k_motifs}, no_points_after_motif={no_points_after_motif}, do_normalization={do_normalization}, include_similarity={include_similarity}"
         )
         # Reset seeds to ensure each run is independent (fresh start)
         random.seed(42)
         np.random.seed(42)
+
 
         # =================== Processing Time Series ===================
         x_batches_Full = []
@@ -279,6 +306,8 @@ def run_grid_search(
                 include_motif_information,
                 k_motifs,
                 no_points_after_motif,
+                do_normalization,
+                include_similarity
             )
             for element1 in x_batches:
                 x_batches_Full.append(element1)
@@ -301,22 +330,28 @@ def run_grid_search(
             xgboost_parameters,
             (include_covariates or (include_motif_information > 0)),
         )
+        end_time = time.time()
+        # print(f"Total execution time: {end_time - start_time:.2f} seconds")
         results.append({
             "include_covariates": include_covariates,
             "include_itself": include_itself,
             "include_motif_information": include_motif_information,
             "k_motifs": k_motifs,
             "no_points_after_motif": no_points_after_motif,
+            "do_normalization": do_normalization,
+            "include_similarity": include_similarity,
             "RMSE": rmse,
             "WAPE": wape,
             "MAE": mae,
-            "MAPE": mape
+            "MAPE": mape,
+            "Execution_Time_Seconds": end_time - start_time
         })
 
     # ======= Save results =======
     df_results = pd.DataFrame(results)
+    
     output_file = (
-        "../results/grid_search_pemds7_results_"
+        "../results/grid_search_"+file_name_prefix+"_results_"
         + str(param_include_covariates)
         + "_"
         + str(include_itself)
@@ -326,15 +361,18 @@ def run_grid_search(
         + str(param_k_motifs)
         + "_"
         + str(param_no_points_after_motif)
+        + "_"
+        + str(param_do_normalization)
+        + "_"
+        + str(param_include_similarity)
         + ".csv"
     )
     df_results.to_csv(output_file, index=False)
     # ======= End of Save results =======
     print(f"Grid search completed. Results saved to {output_file}")
 
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Grid Search for PEMDS7")
+    parser = argparse.ArgumentParser(description="Grid Search")
 
     # Accepting lists of arguments using nargs='+'
     # type=str2bool ensures 'True'/'False' strings are converted to booleans
@@ -348,14 +386,23 @@ if __name__ == "__main__":
                         help="List of integers for k motifs")
     parser.add_argument("--no_points_after_motif", nargs='+', type=int, default=[1], 
                         help="List of integers for points after motif")
+    parser.add_argument("--do_normalization", nargs='+', type=str2bool, default=[False], 
+                        help="List of booleans for do_normalization")
+    parser.add_argument("--include_similarity", nargs='+', type=str2bool, default=[False], 
+                        help="List of booleans for include_similarity")
+    parser.add_argument("--no_time_series", nargs='+', type=int, default=[-1], 
+                        help="List of integers for number of time series")
 
     args = parser.parse_args()
-    print("Starting grid search for PEMDS7 dataset...")
+    print("Starting grid search...")
     # run_grid_search()
     run_grid_search(
         param_include_covariates=args.include_covariates,
         param_include_itself=args.include_itself,
         param_include_motif_information=args.include_motif_information,
         param_k_motifs=args.k_motifs,
-        param_no_points_after_motif=args.no_points_after_motif
+        param_no_points_after_motif=args.no_points_after_motif,
+        param_do_normalization=args.do_normalization,
+        param_include_similarity=args.include_similarity,
+        param_no_time_series=args.no_time_series
     )

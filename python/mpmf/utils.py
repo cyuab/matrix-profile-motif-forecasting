@@ -31,7 +31,7 @@ def get_top_1_motif(T, m, l=1, include_itself=False):
     """
     # print("get_top_1_motif")
 
-    mp = stumpy.stump(T, m=m)
+    mp = stumpy.stump(T, m=m, ignore_trivial=True)
 
     top_1_motif_dist = np.full(len(T), np.nan)
     top_1_motif_idx = np.full(len(T), np.nan)
@@ -85,7 +85,8 @@ def get_top_1_motif(T, m, l=1, include_itself=False):
 
     return df_motif
 
-def get_top_1_motif_stumped(T, m, l=1, include_itself=False):
+
+def get_top_1_motif_trend(T, m, l=1, include_itself=False):
     """Get the motif information for the time series T.
 
     Parameters
@@ -110,7 +111,7 @@ def get_top_1_motif_stumped(T, m, l=1, include_itself=False):
     """
     # print("get_top_1_motif")
 
-    mp = stumpy.stump(T, m=m)
+    mp = stumpy.stump(T, m=m, ignore_trivial=True)
 
     top_1_motif_dist = np.full(len(T), np.nan)
     top_1_motif_idx = np.full(len(T), np.nan)
@@ -138,10 +139,11 @@ def get_top_1_motif_stumped(T, m, l=1, include_itself=False):
             for ll in range(l):
                 tgt_idx = j + m + ll
                 if tgt_idx < len(T):
-                    top_1_motif_points_after[i, ll] = T[tgt_idx]
+                    top_1_motif_points_after[i, ll] = T[tgt_idx] - T[tgt_idx-1]
+            # how far the top-1 motif is from the query.
             top_1_motif_idx_delta[i] = (
                 q_idx - top_1_motif_idx[i]
-            )  # how far the top-1 motif is from the query.
+            )  
             query = T[
                 q_idx : q_idx + m
             ].to_numpy()  # The distance calculation requires they are in NumPy arrays.
@@ -163,7 +165,6 @@ def get_top_1_motif_stumped(T, m, l=1, include_itself=False):
             )
 
     return df_motif
-
 
 def get_top_k_motifs(T, m, k=1, l=1, include_itself=False):
     # https://github.com/stumpy-dev/stumpy/discussions/1093#discussioncomment-14063985
