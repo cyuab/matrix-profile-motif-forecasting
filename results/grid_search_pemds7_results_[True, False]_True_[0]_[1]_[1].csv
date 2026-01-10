@@ -1,3 +1,3 @@
 include_covariates,include_itself,include_motif_information,k_motifs,no_points_after_motif,RMSE,WAPE,MAE,MAPE
-True,True,0,1,1,5.1890044,0.047981203,2.795798,0.06838744
-False,True,0,1,1,5.610533,0.051223565,2.984726,0.07419576
+True,True,0,1,1,5.190582,0.04798727,2.7961516,0.06843819
+False,True,0,1,1,5.6098986,0.05121678,2.984331,0.07418814

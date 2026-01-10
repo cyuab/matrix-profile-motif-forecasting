@@ -5,7 +5,7 @@ Usage Example:
     python grid_search_pemds7.py \
       --include_covariates True False \
       --include_itself True \
-      --include_motif_information 0 \
+      --include_motif_information 1 \
       --k_motifs 1 \
       --no_points_after_motif 1
 """
@@ -13,16 +13,14 @@ Usage Example:
 import pandas as pd
 import numpy as np
 import random
-
 random.seed(42)
 from datetime import datetime, timedelta
 from sklearn import preprocessing
-
 from GBRT_for_TSF.utils import evaluate_with_xgboost
 from mpmf.utils import get_top_1_motif, get_top_k_motifs, compute_point_after_average
 
-import sys
-import os
+# import sys
+# import os
 import itertools
 import argparse  # Added for command line arguments
 
@@ -249,7 +247,6 @@ def run_grid_search(
     for idx, (
         include_covariates,
         include_itself,
-        include_covariates,
         include_motif_information,
         k_motifs,
         no_points_after_motif,
@@ -278,6 +275,7 @@ def run_grid_search(
                 num_periods_input,
                 num_periods_output,
                 include_itself,
+                include_covariates,
                 include_motif_information,
                 k_motifs,
                 no_points_after_motif,
