@@ -1,24 +1,20 @@
 """
 Usage Example:
     python grid_search_pemds7.py \
-        --include_covariates True False \
-        --no_time_series 5
+        --include_covariates True False 
 
     python grid_search_pemds7.py \
         --include_covariates True False \
         --include_motif_information 1 \
         --no_points_after_motif 1 5 9\
         --do_normalization True False \
-        --include_similarity True False\
-        --no_time_series 5
-
+        --include_similarity True False
+    
     python grid_search_pemds7.py \
         --include_covariates True False \
         --include_motif_information 2 \
         --no_points_after_motif 1 5 9\
-        --do_normalization False \
-        --include_similarity True False\
-        --no_time_series 5
+        --include_similarity True False
 """
 
 import pandas as pd
@@ -28,7 +24,7 @@ random.seed(42)
 from datetime import datetime, timedelta
 from sklearn import preprocessing
 from GBRT_for_TSF.utils import evaluate_with_xgboost
-from mpmf.utils import get_top_1_motif, get_top_1_motif_trend, get_top_k_motifs, compute_point_after_average
+from mpmf.utils import get_top_1_motif_numba, get_top_1_motif_trend, get_top_k_motifs, compute_point_after_average
 
 import itertools
 import argparse  # Added for command line arguments
@@ -94,12 +90,12 @@ def New_preprocessing(
     #################################################################################################
     if include_motif_information:
         if include_motif_information == 1 or include_motif_information == 2:  # get_top_1_motif
-            function_used = get_top_1_motif if include_motif_information == 1 else get_top_1_motif_trend
-            df_motif = function_used(
+            df_motif = get_top_1_motif_numba(
                 TimeSeries,
                 num_periods_output,
                 l=no_points_after_motif,
                 include_itself=include_itself,
+                compute_trend=(include_motif_information == 2)
             )
 
             df_motif_points = df_motif[[c for c in df_motif.columns if (("idx" not in c) and ("dist" not in c))]]
@@ -157,9 +153,12 @@ def New_preprocessing(
     Train = Normalized_Data_df.iloc[0:split_index, :]
     Train = Train.values
     Train = Train.astype("float32")
+    # print('Traing length :',len(Train))
     Test = Normalized_Data_df.iloc[(split_index - num_periods_input) :, :]
     Test = Test.values
     Test = Test.astype("float32")
+    # print('Traing length :',len(Test))
+    # Number_Of_Features = 8
     Number_Of_Features = Normalized_Data_df.shape[1]
     ############################################ Windowing ##################################
     end = len(Train)
@@ -216,6 +215,11 @@ def run_grid_search(
     param_include_similarity,
     param_no_time_series,
 ):
+    # --- Warmup Run ---
+    print("Performing Numba warmup (ignoring time)...")
+    # This compiles the function so the next run is fast
+    _ = get_top_1_motif_numba(np.random.rand(100), m=10)
+    print("Warmup complete.\n")
     # Change 3
     #################################################################################################
     file_name = "pems.npy"
@@ -320,6 +324,7 @@ def run_grid_search(
 
             for element6 in Y_Test:
                 Y_Test_Full.append(element6)
+        end_time_matrix_profile = time.time()
         ## =================== End of Processing Time Series ===================
         rmse, wape, mae, mape = evaluate_with_xgboost(
             num_periods_output,
@@ -344,7 +349,8 @@ def run_grid_search(
             "WAPE": wape,
             "MAE": mae,
             "MAPE": mape,
-            "Execution_Time_Seconds": end_time - start_time
+            "Time_Processing": end_time_matrix_profile - start_time,
+            "Time_Overall": end_time - start_time
         })
 
     # ======= Save results =======

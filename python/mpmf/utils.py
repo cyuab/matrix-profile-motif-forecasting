@@ -5,6 +5,90 @@ from stumpy import config, core
 import re
 import warnings
 # import sys, os
+from numba import njit
+
+@njit(cache=True)
+def z_norm(a):
+    mu = np.mean(a)
+    sigma = np.std(a)
+    if sigma == 0:
+        return np.zeros_like(a)
+    return (a - mu) / sigma
+
+
+@njit(cache=True)
+def _extract_motif_data_numba(T, mp_left_I, m, l, start_idx_loop, q_offset, compute_trend):
+
+    n = len(T)
+
+    top_1_idx = np.full(n, np.nan, dtype=np.float64)
+    top_1_dist = np.full(n, np.nan, dtype=np.float64)
+    top_1_delta = np.full(n, np.nan, dtype=np.float64)
+    top_1_after = np.full((n, l), np.nan, dtype=np.float64)
+
+    for i in range(start_idx_loop, n):
+        q_idx = i - q_offset
+
+        # Check bounds for query index
+        if q_idx >= 0 and q_idx < len(mp_left_I):
+
+            idx_neighbor = mp_left_I[q_idx]
+
+            # Stumpy uses -1 to indicate no neighbor found
+            if idx_neighbor >= 0:
+                top_1_idx[i] = int(idx_neighbor)
+
+                query = T[q_idx : q_idx + m]
+                neighbor = T[idx_neighbor : idx_neighbor + m]
+                top_1_dist[i] = np.linalg.norm(z_norm(query) - z_norm(neighbor))
+                top_1_delta[i] = int(q_idx - idx_neighbor)
+
+                # Calculate where the motif ends
+                motif_end = idx_neighbor + m
+
+                # Extract 'l' points after the motif
+                for ll in range(l):
+                    tgt_idx = motif_end + ll
+                    if tgt_idx < n:
+                        if compute_trend:
+                            top_1_after[i, ll] = T[tgt_idx] - T[tgt_idx - 1]
+                        else:
+                            top_1_after[i, ll] = T[tgt_idx]
+
+    return top_1_idx, top_1_dist, top_1_delta, top_1_after
+
+def get_top_1_motif_numba(T, m, l=1, compute_trend = False, include_itself=False):
+
+    # Convert Pandas Series to Numpy if needed
+    if isinstance(T, pd.Series):
+        T = T.values
+    # Ensure Float64 for Numba compatibility
+    T = T.astype(np.float64)
+
+    mp = stumpy.stump(T, m=m, ignore_trivial=True)
+
+    if include_itself:
+        start_idx_loop = m - 1
+        q_offset = m - 1
+    else:
+        start_idx_loop = m
+        q_offset = m
+
+    top_1_idx, top_1_dist, top_1_delta, top_1_after = _extract_motif_data_numba(
+        T, mp.left_I_, int(m), int(l), int(start_idx_loop), int(q_offset), compute_trend
+    )
+
+    # --- Format DataFrame ---
+    result_dict = {
+        "top_1_motif_dist": top_1_dist,
+        "top_1_motif_idx": top_1_idx,
+        "top_1_motif_idx_delta": top_1_delta,
+    }
+
+    for ll in range(l):
+        result_dict[f"top_1_motif_point_after_{ll+1}"] = top_1_after[:, ll]
+
+    return pd.DataFrame(result_dict)
 
 def get_top_1_motif(T, m, l=1, include_itself=False):
     """Get the motif information for the time series T.
@@ -65,8 +149,12 @@ def get_top_1_motif(T, m, l=1, include_itself=False):
             )  # how far the top-1 motif is from the query.
             query = T[
                 q_idx : q_idx + m
-            ].to_numpy()  # The distance calculation requires they are in NumPy arrays.
-            top_1_motif = T[j : j + m].to_numpy()
+            ]
+            # query = T[
+            #     q_idx : q_idx + m
+            # ].to_numpy()  # The distance calculation requires they are in NumPy arrays.
+            top_1_motif = T[j : j + m]
+            # top_1_motif = T[j : j + m].to_numpy()
             top_1_motif_dist[i] = np.linalg.norm(
                 stumpy.core.z_norm(query) - stumpy.core.z_norm(top_1_motif)
             )
@@ -144,10 +232,14 @@ def get_top_1_motif_trend(T, m, l=1, include_itself=False):
             top_1_motif_idx_delta[i] = (
                 q_idx - top_1_motif_idx[i]
             )  
+            # query = T[
+            #     q_idx : q_idx + m
+            # ].to_numpy()  # The distance calculation requires they are in NumPy arrays.
             query = T[
                 q_idx : q_idx + m
-            ].to_numpy()  # The distance calculation requires they are in NumPy arrays.
-            top_1_motif = T[j : j + m].to_numpy()
+            ]
+            # top_1_motif = T[j : j + m].to_numpy()
+            top_1_motif = T[j : j + m]
             top_1_motif_dist[i] = np.linalg.norm(
                 stumpy.core.z_norm(query) - stumpy.core.z_norm(top_1_motif)
             )

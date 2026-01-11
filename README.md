@@ -11,6 +11,7 @@
     conda env remove -n mpmf
 ```
 - "mpmf" stands for **m**atrix-**p**rofile-**m**otif-**f**orecasting (i.e., the repository name).
+- How to run the code? [Here!](https://github.com/cyuab/matrix-profile-motif-forecasting/blob/main/results/README.md)
 
 ## Datasets
 - Electricity [[sen2019think]](#sen2019think)
