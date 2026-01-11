@@ -1,0 +1,30 @@
+## Test the code
+```
+    $ ./run_grid_search.sh
+    # If permission denied
+    $ chmod +x run_grid_search.sh
+```
+
+## On CSE Compute, HKUST
+
+- Dockerfile
+    ```
+    FROM python:3.10-slim
+    RUN pip install --no-cache-dir numpy pandas scikit-learn xgboost stumpy
+    ```
+- For grid_search_pemds7.py
+  - On [COMPUTE service](https://compute.cse.ust.hk/), [Computing Facilities, CS System, Department of CSE, HKUST.](https://cssystem.cse.ust.hk/Facilities/index.html)  
+    ```
+    HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; python grid_search_pemds7.py 
+    ```
+- Usage
+  ```
+  # Job Name: Starting Grid Search: pemds7, include_motif_information=0...
+  python grid_search_pemds7.py --include_covariates True False
+
+  # Job Name: Starting Grid Search: pemds7, include_motif_information=1...
+  python grid_search_pemds7.py --include_covariates True False --include_motif_information 1 --no_points_after_motif 1 5 9 --do_normalization True False --include_similarity True False
+
+  # Job Name: Starting Grid Search: pemds7, include_motif_information=2...
+  python grid_search_pemds7.py --include_covariates True False --include_motif_information 2 --no_points_after_motif 1 5 9 --do_normalization True False --include_similarity True False
+  ```

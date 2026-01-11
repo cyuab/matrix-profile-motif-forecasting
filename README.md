@@ -20,6 +20,26 @@
 - Exchange-Rate [[lai2018modeling]](#lai2018modeling)
 
 ## Project Structure
+```
+.
+├── data
+├── figures
+├── GBRT_Univariate
+├── python
+│   ├── environment_information.ipynb
+│   ├── evaluate_pemds7.ipynb
+│   ├── GBRT_for_TSF
+│   │   └── utils.py
+│   ├── grid_search_pemds7.py
+│   ├── mpmf
+│   │   └── utils.py
+│   ├── run_grid_search.sh
+│   └── visualize_matrix_profile.ipynb
+├── README.md
+└── results
+    └── README.md
+```
+- Please refer `evaluate_pemds7.ipynb` to understand the code. `grid_search_pemds7.py` is its derived code for the experiment.
 - GBRT_Univariate/: The original code ([Commit 9b14dc9](https://github.com/Daniela-Shereen/GBRT-for-TSF/tree/9b14dc957cb2f33fc4a04566d9c140dc2b2a3014), accessed on 2025-12-23) from [[elsayed2021we]](#elsayed2021we) with little modifications such that it can be run in our environment and the result is reproducible by setting the random seed.
 - environment_information.ipynb: Check environment information.
   
