@@ -1,7 +1,7 @@
 # How to run the code?
 
 - The code is finally tested on a notebook computer (Apple M1 Pro chip, 16 GB memory).
-- It has also been tested on the following machine.
+- It has also been tested on tCSE Compute, HKUST.
 
 ## Test on a notebook computer
 
