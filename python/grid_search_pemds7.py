@@ -5,7 +5,7 @@ random.seed(42)
 from datetime import datetime, timedelta
 from sklearn import preprocessing
 from GBRT_for_TSF.utils import evaluate_with_xgboost
-from mpmf.utils import get_top_1_motif_numba, get_top_1_motif_trend, get_top_k_motifs, compute_point_after_average
+from mpmf.utils import get_top_1_motif_numba
 
 import itertools
 import argparse  # Added for command line arguments

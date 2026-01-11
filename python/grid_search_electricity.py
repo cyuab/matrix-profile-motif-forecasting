@@ -5,7 +5,7 @@ random.seed(42)
 from datetime import datetime, timedelta
 from sklearn import preprocessing
 from GBRT_for_TSF.utils import evaluate_with_xgboost
-from mpmf.utils import get_top_1_motif_numba, get_top_1_motif_trend, get_top_k_motifs, compute_point_after_average
+from mpmf.utils import get_top_1_motif_numba
 
 import itertools
 import argparse  # Added for command line arguments
@@ -146,7 +146,8 @@ def New_preprocessing(
     next = 0
     x_batches = []
     y_batches = []
-    while next + (num_periods_input + num_periods_output) < end:
+    limit = max(num_periods_input, num_periods_output)
+    while next + limit < end:
         next = start + num_periods_input
         x_batches.append(Train[start:next, :])
         y_batches.append(Train[next : next + num_periods_output, 0])
@@ -161,11 +162,11 @@ def New_preprocessing(
     next_test = 0
     x_testbatches = []
     y_testbatches = []
-    while next_test + (num_periods_input + num_periods_output) < end_test:
+    while next_test + limit < end_test:
         next_test = start_test + num_periods_input
         x_testbatches.append(Test[start_test:next_test, :])
         y_testbatches.append(Test[next_test : next_test + num_periods_output, 0])
-        start_test = start_test + 1
+        start_test = start_test + num_periods_input
     y_testbatches = np.asarray(y_testbatches)
     y_testbatches = y_testbatches.reshape(-1, num_periods_output, 1)
     x_testbatches = np.asarray(x_testbatches)
