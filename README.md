@@ -1,5 +1,5 @@
 # Leveraging Nearest Neighbors for Time Series Forecasting with Matrix Profile
-<img src="figures/visualize_matrix_profile.pptx.pdf" alt="Matrix Profile." width="400" height="300">
+<img src="figures/visualize_matrix_profile.pptx.svg" alt="Matrix Profile." width="400" height="300">
 
 ## Notifications
 
