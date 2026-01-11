@@ -10,7 +10,7 @@
     conda deactivate
     conda env remove -n mpmf
 ```
-- "mpmf" stands for **m**atrix-**p**rofile-**m**otif-**f**orecasting (i.e., the repository name).
+- `mpmf` stands for **m**atrix-**p**rofile-**m**otif-**f**orecasting (i.e., the repository name).
 - How to run the code? [Here!](results/README.md)
 
 ## Datasets
@@ -43,11 +43,11 @@
 └── results
     └── README.md
 ```
-- Please read `evaluate_pemds7.ipynb` to understand the code. `grid_search_pemds7.py` is its derived code for the experiment.
-- `run_grid_search.sh`: For experiments. It runs the `grid_search_*_.py` sequentially.
-- `GBRT_Univariate/`: The original code ([Commit 9b14dc9](https://github.com/Daniela-Shereen/GBRT-for-TSF/tree/9b14dc957cb2f33fc4a04566d9c140dc2b2a3014), accessed on 2025-12-23) from [[elsayed2021we]](#elsayed2021we) with little modifications such that it can be run in our environment and the result is reproducible by setting the random seed.
-- `environment_information.ipynb`: Check environment information.
-- `environment.yml`: My testing environment on my notebook (Apple M1 Pro chip, 16 GB memory).
+- Please read [evaluate_pemds7.ipynb](python/evaluate_pemds7.ipynb) to understand the code. [grid_search_pemds7.py](python/grid_search_pemds7.py) is its derived code for the experiment.
+- [run_grid_search.sh](python/run_grid_search.sh): For experiments. It runs the `grid_search_*_.py` sequentially.
+- [GBRT_Univariate/](GBRT_Univariate): The original code ([Commit 9b14dc9](https://github.com/Daniela-Shereen/GBRT-for-TSF/tree/9b14dc957cb2f33fc4a04566d9c140dc2b2a3014), accessed on 2025-12-23) from [[elsayed2021we]](#elsayed2021we) with little modifications such that it can be run in our environment and the result is reproducible by setting the random seed.
+- [environment_information.ipynb](python/environment_information.ipynb): Check environment information.
+- [environment.yml](environment.yml): My testing environment on my notebook (Apple M1 Pro chip, 16 GB memory).
   
 ## Corresponding Paper
 ### Figures/Tables in the Paper
