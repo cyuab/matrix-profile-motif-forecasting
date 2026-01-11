@@ -1,11 +1,12 @@
 # How to run the code?
 
 - The code is finally tested on a notebook computer (Apple M1 Pro chip, 16 GB memory).
-- It has also been tested on tCSE Compute, HKUST.
+- It has also been tested on CSE Compute, HKUST.
 
 ## Test on a notebook computer
 
 ```
+    # Comment/uncomment to execute the desired experiments 
     $ ./run_grid_search.sh
     # If permission denied
     $ chmod +x run_grid_search.sh
