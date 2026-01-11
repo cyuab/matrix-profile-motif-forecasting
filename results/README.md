@@ -1,9 +1,9 @@
 # How to run the code?
 
-- The code is finally tested on a notebook computer (Apple M1 Pro chip, 16 GB memory).
+- The code is finally tested on my notebook computer (Apple M1 Pro chip, 16 GB memory).
 - It has also been tested on CSE Compute, HKUST.
 
-## Test on a notebook computer
+## Test on my notebook computer
 
 ```
     # Comment/uncomment to execute the desired experiments 

@@ -1,5 +1,5 @@
 # Leveraging Nearest Neighbors for Time Series Forecasting with Matrix Profile
-<img src="figures/visualize_matrix_profile.pptx.svg" alt="Matrix Profile." width="400" height="300">
+<img src="figures/visualize_matrix_profile.pptx.svg" alt="Matrix Profile." width="400">
 
 ## Notifications
 
@@ -52,7 +52,7 @@
 - [environment.yml](environment.yml): My testing environment on my notebook (Apple M1 Pro chip, 16 GB memory).
   
 ## Corresponding Paper
-### Code for the Figures/Tables
+### Data/Code for the Figures/Tables
 - [[fig:visualize-matrix-profile]](python/visualize_matrix_profile.ipynb)
 
 ## References
