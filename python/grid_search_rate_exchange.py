@@ -38,29 +38,18 @@ def New_preprocessing(
     Data = []
     # Change 1
     #################################################################################################
-    start_date = datetime(2012, 5, 1, 00, 00, 00)  # define start date
+    start_date = datetime(1990, 1, 1, 00, 00, 00)  # define start date
     for i in range(0, len(TimeSeries)):
         record = []
-        record.append(TimeSeries[i])  # adding the pemds7 value
+        record.append(TimeSeries[i])  # adding the xchangerate value
         record.append(start_date.month)
         record.append(start_date.day)
-        record.append(start_date.hour)
-        record.append(start_date.minute)
         record.append(start_date.weekday())
         record.append(start_date.timetuple().tm_yday)
         record.append(start_date.isocalendar()[1])
-        start_date = start_date + timedelta(minutes=5)
+        start_date = start_date + timedelta(days=1)
         Data.append(record)
-    headers = [
-        "pems",
-        "month",
-        "day",
-        "hour",
-        "minute",
-        "day_of_week",
-        "day_of_year",
-        "week_of_year",
-    ]
+    headers = ["pems", "month", "day", "day_of_week", "day_of_year", "week_of_year"]
     #################################################################################################
     Data_df = pd.DataFrame(Data, columns=headers)
     sub = Data_df.iloc[:, 1:]
@@ -130,18 +119,27 @@ def New_preprocessing(
 
     #################################################################################################
     # Change 2
-    split_index = 11232
-    #################################################################################################
-    Train = Normalized_Data_df.iloc[0:split_index, :]
+    # cut training and testing
+    train_split = np.floor(len(Normalized_Data_df) * 0.8)  # 60 % training
+    train_split = int(
+        train_split - (train_split % (num_periods_output + num_periods_input))
+    )
+    Train = Normalized_Data_df.iloc[0:train_split, :]
     Train = Train.values
     Train = Train.astype("float32")
     # print('Traing length :',len(Train))
-    Test = Normalized_Data_df.iloc[(split_index - num_periods_input) :, :]
+    total = len(Normalized_Data_df)
+    test_split = np.floor(len(Normalized_Data_df) * 0.2)  # 20 % testing
+    test_split = int(
+        test_split - (test_split % (num_periods_output + num_periods_input))
+    )
+    Test = Normalized_Data_df.iloc[(total - test_split - num_periods_input) :, :]
     Test = Test.values
     Test = Test.astype("float32")
     # print('Traing length :',len(Test))
     # Number_Of_Features = 8
     Number_Of_Features = Normalized_Data_df.shape[1]
+    #################################################################################################
     ############################################ Windowing ##################################
     end = len(Train)
     start = 0
@@ -204,10 +202,12 @@ def run_grid_search(
     print("Warmup complete.\n")
     # Change 3
     #################################################################################################
-    file_name = "pems.npy"
+    file_name = "exchange_rate.txt"
     file_name_prefix = file_name.split('.')[0]
     data_path = r"../data/" + file_name
-    data = np.load(data_path)
+    data = pd.read_csv(data_path, sep=",", header=None)
+    data = pd.DataFrame(data)
+    data = data.T
     #################################################################################################
     data = pd.DataFrame(data)
     if param_no_time_series[0] != -1:
@@ -216,23 +216,23 @@ def run_grid_search(
 
     # Change 4
     #################################################################################################
-    num_periods_input = 9  # input
-    num_periods_output = 9  # to predict
+    num_periods_input = 24  # input
+    num_periods_output = 24  # to predict
     #################################################################################################
 
     # Change 5
     #################################################################################################
     xgboost_parameters = {
-        "learning_rate": 0.045,
-        "n_estimators": 150,
-        "max_depth": 8,
+        "learning_rate": 0.07,
+        "n_estimators": 80,
+        "max_depth": 3,
         "min_child_weight": 1,
         "gamma": 0.0,
-        "subsample": 0.8,
-        "colsample_bytree": 0.8,
+        "subsample": 0.97,
+        "colsample_bytree": 0.97,
         "scale_pos_weight": 1,
         "random_state": 42,
-        "verbosity": 1,  # 0=Silent, 1=Warning, 2=Info, 3=Debug
+        "verbosity": 1, # 0=Silent, 1=Warning, 2=Info, 3=Debug
     }
     #################################################################################################
     results = []
