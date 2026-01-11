@@ -50,7 +50,7 @@
 - [environment.yml](environment.yml): My testing environment on my notebook (Apple M1 Pro chip, 16 GB memory).
   
 ## Corresponding Paper
-### Figures/Tables in the Paper
+### Code for the Figures/Tables
 - [[fig:visualize-matrix-profile]](python/visualize_matrix_profile.ipynb)
 
 ## References
