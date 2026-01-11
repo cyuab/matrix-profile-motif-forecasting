@@ -45,6 +45,7 @@
   
 ## Corresponding Paper
 ### Figures/Tables in the Paper
+- [[fig:visualize-matrix-profile]](python/visualize_matrix_profile.ipynb)
 
 ## References
 Sorted by year
