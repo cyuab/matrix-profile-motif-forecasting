@@ -9,7 +9,11 @@ python grid_search_electricity.py \
     --include_covariates True False
 
 echo "For traffic..."
-echo "For pemds7..."
+echo "Starting Grid Search: traffic, include_motif_information=0..."
+python grid_search_traffic.py \
+    --include_covariates True False
+
+# echo "For pemds7..."
 # echo "Starting Grid Search: pemds7, include_motif_information=0..."
 # python grid_search_pemds7.py \
 #     --include_covariates True False
@@ -31,4 +35,8 @@ echo "For pemds7..."
 #     --include_similarity True False
 
 echo "For rate_exchange..."
+echo "Starting Grid Search: rate_exchange, include_motif_information=0..."
+python grid_search_rate_exchange.py \
+    --include_covariates True False
+
 echo "All grid searches completed successfully."

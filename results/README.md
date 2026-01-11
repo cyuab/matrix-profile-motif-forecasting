@@ -1,13 +1,18 @@
-## Test the code
+# How to run the code?
+
+- The code is finally tested on a notebook computer (Apple M1 Pro chip, 16 GB memory).
+- It has also been tested on the following machine.
+
+## Test on a notebook computer
+
 ```
     $ ./run_grid_search.sh
     # If permission denied
     $ chmod +x run_grid_search.sh
 ```
-- The code is finally tested on a notebook computer (Apple M1 Pro chip, 16 GB memory).
-- It has also been tested on the following machine.
 
-### On CSE Compute, HKUST
+## Test on CSE Compute, HKUST
+
 - On [COMPUTE service](https://compute.cse.ust.hk/), [Computing Facilities, CS System, Department of CSE, HKUST.](https://cssystem.cse.ust.hk/Facilities/index.html)  
 
 - Dockerfile
