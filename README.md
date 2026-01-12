@@ -32,13 +32,11 @@
 │   ├── evaluate_pemds7.ipynb
 │   ├── GBRT_for_TSF
 │   │   └── utils.py
-│   ├── grid_search_electricity.py
-│   ├── grid_search_pemds7.py
-│   ├── grid_search_rate_exchange.py
-│   ├── grid_search_traffic.py
+│   ├── grid_search_*.py
 │   ├── mpmf
 │   │   └── utils.py
 │   ├── run_grid_search.sh
+│   ├── run_grid_*.sh
 │   └── visualize_matrix_profile.ipynb
 ├── README.md
 └── results
