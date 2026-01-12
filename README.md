@@ -36,7 +36,7 @@
 │   ├── mpmf
 │   │   └── utils.py
 │   ├── run_grid_search.sh
-│   ├── run_grid_*.sh
+│   ├── run_grid_search_*.sh
 │   └── visualize_matrix_profile.ipynb
 ├── README.md
 └── results
