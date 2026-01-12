@@ -32,7 +32,7 @@
   $ tmux kill-server
 ```
 
-Test on CSE Compute, HKUST
+## Test on CSE Compute, HKUST
 
 - On [COMPUTE service](https://compute.cse.ust.hk/), [Computing Facilities, CS System, Department of CSE, HKUST.](https://cssystem.cse.ust.hk/Facilities/index.html)  
 
