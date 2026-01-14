@@ -60,62 +60,60 @@ def New_preprocessing(
     )
     #################################################################################################
     if include_motif_information:
-        if include_motif_information == 1 or include_motif_information == 2:  # get_top_1_motif
-            df_motif = get_top_1_motif_numba(
+        # include_motif_information: 1:12; Odds: raw values; Evens: trend values
+        df_motif = get_top_1_motif_numba(
                 TimeSeries,
-                num_periods_output,
+                num_periods_input,
                 l=no_points_after_motif,
                 include_itself=include_itself,
-                compute_trend=(include_motif_information == 2)
+                compute_trend=(include_motif_information == 2 or include_motif_information == 4 or include_motif_information == 6 or include_motif_information == 8 or include_motif_information == 10 or include_motif_information == 12)
             )
-
-            df_motif_points = df_motif[[c for c in df_motif.columns if (("idx" not in c) and ("dist" not in c))]]
-
+        df_motif_points_after = df_motif[[c for c in df_motif.columns if ("point_after" in c)]]
+        if do_normalization:
+            df_motif_points_after = df_motif_points_after.sub(df_motif_points_after.mean(axis=1), axis=0).div(df_motif_points_after.std(axis=1, ddof=0), axis=0) # Use Population Standard Deviation (ddof=0)
+            df_motif_points_after = df_motif_points_after.replace([np.inf, -np.inf], np.nan)
+        Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_points_after], axis=1)
+        # Add motif points before
+        if include_motif_information in [3, 4, 5, 6, 9, 10, 11, 12]: # No 7, 8
+            df_motif_points_before = df_motif[[c for c in df_motif.columns if ("point_before" in c)]]
             if do_normalization:
-                df_motif_points = df_motif_points.sub(df_motif_points.mean(axis=1), axis=0).div(df_motif_points.std(axis=1, ddof=0), axis=0)
-                df_motif_points = df_motif_points.replace([np.inf, -np.inf], np.nan)
+                df_motif_points_before = df_motif_points_before.sub(df_motif_points_before.mean(axis=1), axis=0).div(df_motif_points_before.std(axis=1, ddof=0), axis=0) # Use Population Standard Deviation (ddof=0)
+                df_motif_points_before = df_motif_points_before.replace([np.inf, -np.inf], np.nan)
+            if include_motif_information in [3, 4, 9, 10]:
+                # print("df_motif_points_before shape before slicing:", df_motif_points_before.shape)
+                df_motif_points_before = df_motif_points_before.iloc[:, -1:]  # only last point
+                # print("df_motif_points_before shape after slicing:", df_motif_points_before.shape)
+            else:
+                pass  # all y points
+            Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_points_before], axis=1)
+        if 7 <= include_motif_information <= 12:
+            top_1_idx = df_motif[["top_1_motif_idx"]]
+            last_point_idx = top_1_idx + num_periods_input -1
+            # print("last_point_idx:", last_point_idx)
+            # Retrieve time features, handling NaNs in last_point_idx
+            idx_values = last_point_idx.values.flatten()
+            valid_mask = np.isfinite(idx_values)
             
-            Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_points], axis=1)
+            # Create container filled with NaNs
+            motif_time_features = np.full((len(idx_values), New_sub.shape[1]), np.nan)
+            
+            if np.any(valid_mask):
+                valid_indices = idx_values[valid_mask].astype(int)
+                motif_time_features[valid_mask] = New_sub[valid_indices]
 
-            if include_similarity:
-                df_motif_dist = df_motif[[c for c in df_motif.columns if ("dist" in c)]]
-                df_motif_dist = pd.DataFrame(preprocessing.minmax_scale(df_motif_dist, feature_range=(-0.5, 0.5)), columns=df_motif_dist.columns, index=df_motif_dist.index)
-                Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_dist], axis=1)
+            motif_feat_df = pd.DataFrame(motif_time_features, columns=[
+                "month_motif", "day_motif",
+                "day_of_week_motif", "day_of_year_motif", "week_of_year_motif"
+            ])
+            Normalized_Data_df = pd.concat([Normalized_Data_df, motif_feat_df], axis=1)
 
-        # if include_motif_information == 2:  # get_top_k_motifs (Direct)
-        #     df_motif = get_top_k_motifs(
-        #         TimeSeries,
-        #         num_periods_output,
-        #         k=k_motifs,
-        #         l=no_points_after_motif,
-        #         include_itself=include_itself,
-        #     )
-        #     interested_features = [
-        #         c for c in df_motif.columns if (("idx" not in c) and ("dist" not in c))
-        #     ]
-        #     df_motif = df_motif[interested_features]
-        # if include_motif_information == 3:  # get_top_k_motifs (Unweighted Average)
-        #     df_motif = get_top_k_motifs(
-        #         TimeSeries,
-        #         num_periods_output,
-        #         k=k_motifs,
-        #         l=no_points_after_motif,
-        #         include_itself=include_itself,
-        #     )
-        #     interested_features = [c for c in df_motif.columns if ("idx" not in c)]
-        #     df_motif = df_motif[interested_features]
-        #     df_motif = compute_point_after_average(df_motif)
-        # if include_motif_information == 4:  # get_top_k_motifs (Weighted Average)
-        #     df_motif = get_top_k_motifs(
-        #         TimeSeries,
-        #         num_periods_output,
-        #         k=k_motifs,
-        #         l=no_points_after_motif,
-        #         include_itself=include_itself,
-        #     )
-        #     interested_features = [c for c in df_motif.columns if ("idx" not in c)]
-        #     df_motif = df_motif[interested_features]
-        #     df_motif = compute_point_after_average(df_motif, method="weighted")
+
+        if include_similarity:
+            df_motif_dist = df_motif[[c for c in df_motif.columns if ("dist" in c)]]
+            # print("Shape of df_motif_dist before normalization:", df_motif_dist.shape)
+            df_motif_dist = pd.DataFrame(preprocessing.minmax_scale(df_motif_dist, feature_range=(-0.5, 0.5)), columns=df_motif_dist.columns, index=df_motif_dist.index)
+            # print("Shape of df_motif_dist after normalization:", df_motif_dist.shape)
+            Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_dist], axis=1)
 
     #################################################################################################
     # Change 2
