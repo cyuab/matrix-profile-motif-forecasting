@@ -72,7 +72,7 @@ def New_preprocessing(
             df_motif_points = df_motif[[c for c in df_motif.columns if (("idx" not in c) and ("dist" not in c))]]
 
             if do_normalization:
-                df_motif_points = df_motif_points.sub(df_motif_points.mean(axis=1), axis=0).div(df_motif_points.std(axis=1), axis=0)
+                df_motif_points = df_motif_points.sub(df_motif_points.mean(axis=1), axis=0).div(df_motif_points.std(axis=1, ddof=0), axis=0)
                 df_motif_points = df_motif_points.replace([np.inf, -np.inf], np.nan)
             
             Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_points], axis=1)
