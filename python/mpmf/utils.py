@@ -25,6 +25,7 @@ def _extract_motif_data_numba(T, mp_left_I, m, l, start_idx_loop, q_offset, comp
     top_1_dist = np.full(n, np.nan, dtype=np.float64)
     top_1_delta = np.full(n, np.nan, dtype=np.float64)
     top_1_after = np.full((n, l), np.nan, dtype=np.float64)
+    top_1_before = np.full((n, m), np.nan, dtype=np.float64)
 
     for i in range(start_idx_loop, n):
         q_idx = i - q_offset
@@ -43,19 +44,25 @@ def _extract_motif_data_numba(T, mp_left_I, m, l, start_idx_loop, q_offset, comp
                 top_1_dist[i] = np.linalg.norm(z_norm(query) - z_norm(neighbor))
                 top_1_delta[i] = int(q_idx - idx_neighbor)
 
-                # Calculate where the motif ends
-                motif_end = idx_neighbor + m
+                # Calculate where the nearest neighbor ends
+                neighbor_end = idx_neighbor + m
 
-                # Extract 'l' points after the motif
+                # Extract 'l' points after the nearest neighbor
                 for ll in range(l):
-                    tgt_idx = motif_end + ll
+                    tgt_idx = neighbor_end + ll # tgt_idx: target index
                     if tgt_idx < n:
                         if compute_trend:
                             top_1_after[i, ll] = T[tgt_idx] - T[tgt_idx - 1]
                         else:
                             top_1_after[i, ll] = T[tgt_idx]
+                # Extract `m`points of the nearest neighbor
+                for mm in range(m):
+                    tgt_idx = idx_neighbor + mm
+                    if tgt_idx < n:
+                        top_1_before[i, mm] = T[tgt_idx]
+                
 
-    return top_1_idx, top_1_dist, top_1_delta, top_1_after
+    return top_1_idx, top_1_dist, top_1_delta, top_1_after, top_1_before
 
 def get_top_1_motif_numba(T, m, l=1, compute_trend = False, include_itself=False):
 
@@ -74,7 +81,7 @@ def get_top_1_motif_numba(T, m, l=1, compute_trend = False, include_itself=False
         start_idx_loop = m
         q_offset = m
 
-    top_1_idx, top_1_dist, top_1_delta, top_1_after = _extract_motif_data_numba(
+    top_1_idx, top_1_dist, top_1_delta, top_1_after, top_1_before = _extract_motif_data_numba(
         T, mp.left_I_, int(m), int(l), int(start_idx_loop), int(q_offset), compute_trend
     )
 
@@ -87,6 +94,8 @@ def get_top_1_motif_numba(T, m, l=1, compute_trend = False, include_itself=False
 
     for ll in range(l):
         result_dict[f"top_1_motif_point_after_{ll+1}"] = top_1_after[:, ll]
+    for mm in range(m):
+        result_dict[f"top_1_motif_point_before_{mm+1}"] = top_1_before[:, mm]
 
     return pd.DataFrame(result_dict)
 
