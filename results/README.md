@@ -29,7 +29,7 @@
   $ chmod +x run_grid_search.sh
 ```
 
-## Test on rwcpu10.cse.ust.hk
+## Test on rwcpu10
 
 ```
   # Only use the normal version instead of the GPU version of stumpy
