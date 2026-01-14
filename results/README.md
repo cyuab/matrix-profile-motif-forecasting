@@ -71,3 +71,4 @@
     ```
     HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; ./run_grid_search_electricity.sh
     ```
+    - `run_grid_search_*.py` just run a part of of `run_grid_search.py`.
