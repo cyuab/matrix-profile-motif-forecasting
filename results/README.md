@@ -64,11 +64,9 @@
     HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; python grid_search_pemds7.py --include_covariates True False
 
     HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; python grid_search_pemds7.py --include_covariates True False --include_motif_information 1 --no_points_after_motif 1 5 9 --do_normalization True False --include_similarity True False
-
-    HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; python grid_search_pemds7.py --include_covariates True False --include_motif_information 2 --no_points_after_motif 1 5 9 --do_normalization True False --include_similarity True False
     ```
   - Or use *.sh instead
     ```
-    HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; ./run_grid_search_electricity.sh
+    HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; echo "--- CPU Model ---"; grep -m 1 'model name' /proc/cpuinfo; ./run_grid_search_pemds7.sh
     ```
     - `run_grid_search_*.py` just run a part of of `run_grid_search.py`.
