@@ -1,7 +1,24 @@
 # How to run the code?
 
 - The code is finally tested on my notebook computer (Apple M1 Pro chip, 16 GB memory).
-- It has also been tested on other machines.
+- It has also been tested on other machine (rwcpu10, CSE Compute).
+
+## Input parameters
+
+- `include_motif_information`
+  - `0`: GBRT (Baseline)
+  - `1`: GBRT-NN: With the immediate subsequence of `no_points_after_motif` of the NN
+    - `2`: Pairwise: Same but use pairwise change instead of raw values of the immediate subsequence
+  - `3`: GBRT-NN<sup>+</sup>: With the target value of the last point of the NN on top of `1`
+    - `4`: Pairwise
+  - `5`: GBRT-NN<sup>++</sup>: With the target value of all the points of the NN on top of `1`
+    - `6`: Pairwise
+  - `7`: GBRT-NN<sub>C</sub>: With the covariates of the last point of the NN on top of `1` 
+    - `8`: Pairwise
+  - `9`: GBRT-NN<sub>C</sub><sup>+</sup>: With the covariates and the target value of the last point of the NN on top of `1` 
+    - `10`: Pairwise
+  - `11`: GBRT-NN<sub>C</sub><sup>++</sup>: With the covariates of the last point and the target value of all the points of the NN on top of `1` 
+    - `12`: Pairwise
 
 ## Test on my notebook computer
 
@@ -42,11 +59,7 @@
     RUN pip install --no-cache-dir numpy pandas scikit-learn xgboost stumpy
     ```
 - Usage examples
-  - Environment setting
-    ```
-    HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; python grid_search_pemds7.py 
-    ```
-  - Using *.py directly (Only some examples are shown)
+  - Using *.py directly
     ```
     HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; python grid_search_pemds7.py --include_covariates True False
 
@@ -57,10 +70,4 @@
   - Or use *.sh instead
     ```
     HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; ./run_grid_search_electricity.sh
-
-    HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; ./run_grid_search_traffic.sh
-
-    HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; ./run_grid_search_pemds7.sh
-
-    HOME=/project/kdd/cyuab2/matrix-profile-motif-forecasting/; cd ~; pwd; cd python; pwd; ./run_grid_search_rate_exchange.sh
     ```
