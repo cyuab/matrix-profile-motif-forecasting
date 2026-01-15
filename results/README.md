@@ -60,6 +60,14 @@ $ ps -eo user,uid | awk 'NR>1 && $2 >= 1000 && ++seen[$2]==1{print $1}'
 $ top
 # Press M to sort by Memory usage or P to sort by CPU usage.
 # Pree q to exit.
+
+# Check GPU information
+$ nvidia-smi
+```
+- environment
+```
+$ conda install -c conda-forge matplotlib -y
+$ conda install -c conda-forge seaborn -y
 ```
 
 ## Test on CSE Compute, HKUST
