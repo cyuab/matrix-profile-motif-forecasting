@@ -6,6 +6,8 @@ import re
 import warnings
 # import sys, os
 from numba import njit
+# from numba import set_num_threads, get_num_threads
+# set_num_threads(8)
 
 @njit(cache=True)
 def z_norm(a):
