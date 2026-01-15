@@ -125,7 +125,8 @@ def get_top_1_motif_slow(T, m, l=1, include_itself=False):
     # print("get_top_1_motif")
 
     mp = stumpy.stump(T, m=m, ignore_trivial=True)
-
+    # mp = stumpy.gpu_stump(T, m=m, ignore_trivial=True)
+    
     top_1_motif_dist = np.full(len(T), np.nan)
     top_1_motif_idx = np.full(len(T), np.nan)
     top_1_motif_idx_delta = np.full(len(T), np.nan)
