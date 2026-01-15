@@ -38,6 +38,12 @@
   # Four datasets: electricity, pemds7, rate_exchange, traffic
   $ tmux new -s electricity
   $ ./run_grid_search_electricity.sh
+  $ tmux new -s pemds7
+  $ ./run_grid_search_pemds7.sh
+  $ tmux new -s rate_exchange
+  $ ./run_grid_search_rate_exchange.sh
+  $ tmux new -s traffic
+  $ ./run_grid_search_traffic.sh
 
   # List tmux sessions
   $ tmux ls
