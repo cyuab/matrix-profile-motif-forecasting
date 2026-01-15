@@ -1,3 +1,9 @@
+# Using GPU
+import os
+# Must be set before importing libraries that use the GPU!
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" 
+os.environ["CUDA_VISIBLE_DEVICES"] = "6" # Example: Only expose the RTX 5880 (Index 6)
+
 import pandas as pd
 import numpy as np
 import random
