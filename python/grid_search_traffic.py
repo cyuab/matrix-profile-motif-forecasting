@@ -233,6 +233,9 @@ def run_grid_search(
         "scale_pos_weight": 1,
         "random_state": 42,
         "verbosity": 1, # 0=Silent, 1=Warning, 2=Info, 3=Debug
+        # For GPU acceleration
+        "device": "cuda:0",  # Uses the first GPU
+        "tree_method": "hist" # Required for modern GPU acceleration
     }
     #################################################################################################
     results = []
