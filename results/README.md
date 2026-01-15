@@ -69,6 +69,9 @@ $ top
 
 # Check GPU information
 $ nvidia-smi
+
+# Check # CPU
+$ nproc
 ```
 - environment
 ```
