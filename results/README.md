@@ -35,6 +35,7 @@
   # Only use the normal version instead of the GPU version of stumpy
   $ export NUMBA_DISABLE_CUDA=1
   # Use tmux to detach a task from the terminal
+  # Four datasets: electricity, pemds7, rate_exchange, traffic
   $ tmux new -s electricity
   $ ./run_grid_search_electricity.sh
 
@@ -47,6 +48,18 @@
   $ tmux kill-session -t electricity
   # Kill all
   $ tmux kill-server
+```
+
+### MISC
+```
+# List all users
+# https://unix.stackexchange.com/questions/617652/how-can-i-list-all-currently-logged-in-users
+$ ps -eo user,uid | awk 'NR>1 && $2 >= 1000 && ++seen[$2]==1{print $1}'
+
+# Check Current Tasks
+$ top
+# Press M to sort by Memory usage or P to sort by CPU usage.
+# Pree q to exit.
 ```
 
 ## Test on CSE Compute, HKUST
