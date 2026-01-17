@@ -1,8 +1,8 @@
-# Using GPU
-import os
-# Must be set before importing libraries that use the GPU!
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" 
-os.environ["CUDA_VISIBLE_DEVICES"] = "6" # Example: Only expose the RTX 5880 (Index 6)
+# # Using GPU
+# import os
+# # Must be set before importing libraries that use the GPU!
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" 
+# os.environ["CUDA_VISIBLE_DEVICES"] = "6" # Example: Only expose the RTX 5880 (Index 6)
 
 import pandas as pd
 import numpy as np
@@ -237,9 +237,9 @@ def run_grid_search(
     "scale_pos_weight": 1,
     "random_state": 42,
     "verbosity": 1, # 0=Silent, 1=Warning, 2=Info, 3=Debug
-    # For GPU acceleration
-    "device": "cuda:0",  # Uses the first GPU
-    "tree_method": "hist" # Required for modern GPU acceleration
+    # # For GPU acceleration
+    # "device": "cuda:0",  # Uses the first GPU
+    # "tree_method": "hist" # Required for modern GPU acceleration
     }
     #################################################################################################
     results = []
