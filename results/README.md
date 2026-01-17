@@ -1,7 +1,7 @@
 # How to run the code?
 
 - The code is finally tested on my notebook computer (Apple M1 Pro chip, 16 GB memory).
-- It has also been tested on other machine (rwcpu10, CSE Compute).
+- It has also been tested on other machine (rwcpu9 (10), CSE Compute).
 
 ## Input parameters
 
@@ -29,7 +29,7 @@
   $ chmod +x run_grid_search.sh
 ```
 
-## Test on rwcpu10
+## Test on rwcpu9 (10)
 
 ```
   # Only use the normal version instead of the GPU version of stumpy
