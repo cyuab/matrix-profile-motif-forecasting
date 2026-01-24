@@ -56,7 +56,7 @@
 
 ### Data/Code for the Figures/Tables
 
-- [[fig:visualize-matrix-profile]](python/visualize_matrix_profile.ipynb)
+- [[fig:visualize-matrix-profile]](python/plot_visualize_matrix_profile.ipynb)
 
 ## References
 
