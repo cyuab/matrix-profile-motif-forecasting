@@ -1,6 +1,6 @@
 # How to run the code?
 
-- The code is finally tested on my notebook computer (Apple M1 Pro chip, 16 GB memory).
+- The code is finally tested on my notebook computer (Apple M1 Pro chip, 16 GB memory, namely daikon).
 - It has also been tested on other machine (rwcpu9 (10), CSE Compute).
 
 ## Input parameters
@@ -13,11 +13,11 @@
     - `4`: Pairwise
   - `5`: GBRT-NN<sup>++</sup>: With the target value of all the points of the NN on top of `1`
     - `6`: Pairwise
-  - `7`: GBRT-NN<sub>C</sub>: With the covariates of the last point of the NN on top of `1` 
+  - `7`: GBRT-NNC: With the covariates of the last point of the NN on top of `1` 
     - `8`: Pairwise
-  - `9`: GBRT-NN<sub>C</sub><sup>+</sup>: With the covariates and the target value of the last point of the NN on top of `1` 
+  - `9`: GBRT-NNC<sup>+</sup>: With the covariates and the target value of the last point of the NN on top of `1` 
     - `10`: Pairwise
-  - `11`: GBRT-NN<sub>C</sub><sup>++</sup>: With the covariates of the last point and the target value of all the points of the NN on top of `1` 
+  - `11`: GBRT-NNC<sup>++</sup>: With the covariates of the last point and the target value of all the points of the NN on top of `1` 
     - `12`: Pairwise
 
 ## Test on my notebook computer
