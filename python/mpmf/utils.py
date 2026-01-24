@@ -220,9 +220,15 @@ def get_top_k_motifs(T, m, k=1, l=1, include_itself=False):
                 top_k_motif_dist[i, kk] = matches[kk, 0]
                 top_k_motif_idx[i, kk] = matches[kk, 1]
                 top_k_motif_idx_delta[i, kk] = start_idx - top_k_motif_idx[i, kk]
-                top_k_motif_points_after[i, kk, :] = T[
-                    matches[kk, 1] + m : matches[kk, 1] + m + l
-                ]
+
+                start_slice_idx = matches[kk, 1] + m
+                end_slice_idx = matches[kk, 1] + m + l
+                # Slice T safely; NumPy handles out-of-bound end index by truncating
+                points = T[start_slice_idx:end_slice_idx]
+                
+                # Assign what we found. If points is shorter than l, only fill the beginning.
+                if len(points) > 0:
+                    top_k_motif_points_after[i, kk, :len(points)] = points
     top_k_motif_dist_cols = {
         f"top_{kk+1}_motif_dist": top_k_motif_dist[:, kk] for kk in range(k)
     }
