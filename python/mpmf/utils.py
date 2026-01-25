@@ -106,20 +106,22 @@ def _compute_rolling_stats(T, m):
     n = len(T)
     means = np.full(n, np.nan)
     stds = np.full(n, np.nan)
+
+    # Initialize first window
+    # Use numpy functions for initial precision
+    first_window = T[:m]
+    mu = np.mean(first_window)
+    # Use var = mean(x^2) - mean(x)^2 for consistency with update, 
+    # but initially we can use robust variance
+    var = np.var(first_window)
     
-    sum_x = 0.0
-    sum_x2 = 0.0
-    
-    for i in range(m):
-        val = T[i]
-        sum_x += val
-        sum_x2 += val * val
-        
-    means[0] = sum_x / m
-    var = (sum_x2 / m) - (means[0] * means[0])
-    if var < 1e-14: var = 0.0
+    means[0] = mu
     stds[0] = np.sqrt(var)
-    
+
+    # Initialize sums for rolling update
+    sum_x = np.sum(first_window)
+    sum_x2 = np.sum(first_window * first_window)
+
     for i in range(1, n - m + 1):
         prev_val = T[i-1]
         new_val = T[i+m-1]
@@ -129,8 +131,12 @@ def _compute_rolling_stats(T, m):
         
         mu = sum_x / m
         means[i] = mu
+        
+        # Naive variance update can be unstable, but fast.
+        # Ensure non-negative.
         var = (sum_x2 / m) - (mu * mu)
-        if var < 1e-14: var = 0.0
+        if var < 0: 
+            var = 0.0
         stds[i] = np.sqrt(var)
         
     return means, stds
@@ -148,45 +154,59 @@ def _find_top_k_motifs_numba_core(T, m, k, excl_zone, means, stds, start_idx_loo
         
         mu_q = means[q_idx]
         sigma_q = stds[q_idx]
-        if sigma_q < 1e-14: continue
+        if sigma_q == 0: continue
         
-        limit = q_idx - excl_zone
-        if limit < 0: continue
+        # Valid search range is [0, q_idx - excl_zone - 1] inclusive
+        limit_search = q_idx - excl_zone
+        if limit_search <= 0: continue
         
-        best_dists = np.full(k, np.inf)
-        best_idxs = np.full(k, np.nan)
+        # Compute all distances within the valid past horizon
+        # 1. Compute distances for all j
+        current_profile = np.full(limit_search, np.inf)
         
-        for j in range(limit + 1):
+        for j in range(limit_search):
              mu_c = means[j]
              sigma_c = stds[j]
-             if sigma_c < 1e-14: continue
+             if sigma_c == 0: continue
              
              dot = 0.0
              for off in range(m):
                  dot += T[q_idx + off] * T[j + off]
              
              denom = m * sigma_q * sigma_c
-             if denom == 0: continue
+             # denom is non-zero because sigmas are non-zero
+             
              cov = dot - m * mu_q * mu_c
              corr = cov / denom
              if corr > 1.0: corr = 1.0
              elif corr < -1.0: corr = -1.0
              dist = np.sqrt(2 * m * (1.0 - corr))
+             current_profile[j] = dist
              
-             if dist < best_dists[k-1]:
-                 pos = k - 1
-                 while pos > 0 and (best_dists[pos-1] > dist or np.isnan(best_dists[pos-1])):
-                     best_dists[pos] = best_dists[pos-1]
-                     best_idxs[pos] = best_idxs[pos-1]
-                     pos -= 1
-                 best_dists[pos] = dist
-                 best_idxs[pos] = j
-                 
-        out_dist[i] = best_dists
-        out_idx[i] = best_idxs
+        # 2. Iteratively find k minima with exclusion zones applied
         for kk in range(k):
-            if not np.isnan(best_idxs[kk]):
-                out_delta[i, kk] = q_idx - best_idxs[kk]
+             best_idx = -1
+             best_val = np.inf
+             
+             # Find global minimum in current_profile
+             for j in range(limit_search):
+                 val = current_profile[j]
+                 if val < best_val:
+                     best_val = val
+                     best_idx = j
+            
+             if best_idx == -1:
+                 break
+                 
+             out_dist[i, kk] = best_val
+             out_idx[i, kk] = best_idx
+             out_delta[i, kk] = q_idx - best_idx
+             
+             # Apply exclusion zone around the found match to prevent overlaps
+             # Exclusion range: [best_idx - excl_zone, best_idx + excl_zone]
+             s_excl = max(0, best_idx - excl_zone)
+             e_excl = min(limit_search, best_idx + excl_zone + 1)
+             current_profile[s_excl : e_excl] = np.inf
                 
     return out_dist, out_idx, out_delta
 
