@@ -4,22 +4,29 @@ import stumpy
 from stumpy import config, core
 import re
 import warnings
+from joblib import Parallel, delayed
+
 # import sys, os
 from numba import njit, prange
+
 # from numba import set_num_threads, get_num_threads
 # set_num_threads(8)
+# from scipy.signal import convolve
+
 
 @njit(cache=True)
-def z_norm(a):
-    mu = np.mean(a)
-    sigma = np.std(a)
+def z_norm(T):
+    mu = np.mean(T)
+    sigma = np.std(T)
     if sigma == 0:
-        return np.zeros_like(a)
-    return (a - mu) / sigma
+        return np.zeros_like(T)
+    return (T - mu) / sigma
 
 
 @njit(cache=True)
-def _extract_motif_data_numba(T, mp_left_I, m, l, start_idx_loop, q_offset, compute_trend):
+def _extract_motif_data_numba(
+    T, mp_left_I, m, l, start_idx_loop, q_offset, compute_trend
+):
 
     n = len(T)
 
@@ -51,7 +58,7 @@ def _extract_motif_data_numba(T, mp_left_I, m, l, start_idx_loop, q_offset, comp
 
                 # Extract 'l' points after the nearest neighbor
                 for ll in range(l):
-                    tgt_idx = neighbor_end + ll # tgt_idx: target index
+                    tgt_idx = neighbor_end + ll  # tgt_idx: target index
                     if tgt_idx < n:
                         if compute_trend:
                             top_1_after[i, ll] = T[tgt_idx] - T[tgt_idx - 1]
@@ -62,11 +69,11 @@ def _extract_motif_data_numba(T, mp_left_I, m, l, start_idx_loop, q_offset, comp
                     tgt_idx = idx_neighbor + mm
                     if tgt_idx < n:
                         top_1_before[i, mm] = T[tgt_idx]
-                
 
     return top_1_idx, top_1_dist, top_1_delta, top_1_after, top_1_before
 
-def get_top_1_motif_numba(T, m, l=1, compute_trend = False, include_itself=False):
+
+def get_top_1_motif_numba(T, m, l=1, compute_trend=False, include_itself=False):
 
     # Convert Pandas Series to Numpy if needed
     if isinstance(T, pd.Series):
@@ -83,8 +90,16 @@ def get_top_1_motif_numba(T, m, l=1, compute_trend = False, include_itself=False
         start_idx_loop = m
         q_offset = m
 
-    top_1_idx, top_1_dist, top_1_delta, top_1_after, top_1_before = _extract_motif_data_numba(
-        T, mp.left_I_, int(m), int(l), int(start_idx_loop), int(q_offset), compute_trend
+    top_1_idx, top_1_dist, top_1_delta, top_1_after, top_1_before = (
+        _extract_motif_data_numba(
+            T,
+            mp.left_I_,
+            int(m),
+            int(l),
+            int(start_idx_loop),
+            int(q_offset),
+            compute_trend,
+        )
     )
 
     # --- Format DataFrame ---
@@ -101,6 +116,7 @@ def get_top_1_motif_numba(T, m, l=1, compute_trend = False, include_itself=False
 
     return pd.DataFrame(result_dict)
 
+
 @njit(cache=True)
 def _compute_rolling_stats(T, m):
     n = len(T)
@@ -111,10 +127,10 @@ def _compute_rolling_stats(T, m):
     # Use numpy functions for initial precision
     first_window = T[:m]
     mu = np.mean(first_window)
-    # Use var = mean(x^2) - mean(x)^2 for consistency with update, 
+    # Use var = mean(x^2) - mean(x)^2 for consistency with update,
     # but initially we can use robust variance
     var = np.var(first_window)
-    
+
     means[0] = mu
     stds[0] = np.sqrt(var)
 
@@ -123,143 +139,167 @@ def _compute_rolling_stats(T, m):
     sum_x2 = np.sum(first_window * first_window)
 
     for i in range(1, n - m + 1):
-        prev_val = T[i-1]
-        new_val = T[i+m-1]
-        
+        prev_val = T[i - 1]
+        new_val = T[i + m - 1]
+
         sum_x = sum_x - prev_val + new_val
         sum_x2 = sum_x2 - (prev_val * prev_val) + (new_val * new_val)
-        
+
         mu = sum_x / m
         means[i] = mu
-        
+
         # Naive variance update can be unstable, but fast.
         # Ensure non-negative.
         var = (sum_x2 / m) - (mu * mu)
-        if var < 0: 
+        if var < 0:
             var = 0.0
         stds[i] = np.sqrt(var)
-        
+
     return means, stds
 
+
 @njit(parallel=True)
-def _find_top_k_motifs_numba_core(T, m, k, excl_zone, means, stds, start_idx_loop, q_offset):
+def _find_top_k_motifs_numba_core(
+    T, m, k, excl_zone, means, stds, start_idx_loop, q_offset
+):
     n = len(T)
     out_dist = np.full((n, k), np.inf)
     out_idx = np.full((n, k), np.nan)
     out_delta = np.full((n, k), np.nan)
-    
+
     for i in prange(start_idx_loop, n):
         q_idx = i - q_offset
-        if q_idx < 0 or q_idx >= n - m + 1: continue
-        
+        if q_idx < 0 or q_idx >= n - m + 1:
+            continue
+
         mu_q = means[q_idx]
         sigma_q = stds[q_idx]
-        if sigma_q == 0: continue
-        
+        if sigma_q == 0:
+            continue
+
         # Valid search range is [0, q_idx - excl_zone - 1] inclusive
         limit_search = q_idx - excl_zone
-        if limit_search <= 0: continue
-        
+        if limit_search <= 0:
+            continue
+
         # Compute all distances within the valid past horizon
         # 1. Compute distances for all j
         current_profile = np.full(limit_search, np.inf)
-        
+
+        # Qr = np.flipud(T[q_idx : q_idx + m])
+        # QT = convolve(Qr, T)
+        # QT = QT.real[m - 1 : n]
+
         for j in range(limit_search):
-             mu_c = means[j]
-             sigma_c = stds[j]
-             if sigma_c == 0: continue
-             
-             dot = 0.0
-             for off in range(m):
-                 dot += T[q_idx + off] * T[j + off]
-             
-             denom = m * sigma_q * sigma_c
-             # denom is non-zero because sigmas are non-zero
-             
-             cov = dot - m * mu_q * mu_c
-             corr = cov / denom
-             if corr > 1.0: corr = 1.0
-             elif corr < -1.0: corr = -1.0
-             dist = np.sqrt(2 * m * (1.0 - corr))
-             current_profile[j] = dist
-             
+            mu_c = means[j]
+            sigma_c = stds[j]
+            if sigma_c == 0:
+                continue
+
+            dot = 0.0
+            for off in range(m):
+                dot += T[q_idx + off] * T[j + off]
+            # dot = QT[j]
+
+            denom = m * sigma_q * sigma_c
+            # denom is non-zero because sigmas are non-zero
+
+            cov = dot - m * mu_q * mu_c
+            corr = cov / denom
+            # Coor must be in [-1, 1]
+            if corr > 1.0:
+                corr = 1.0
+            elif corr < -1.0:
+                corr = -1.0
+            dist = np.sqrt(2 * m * (1.0 - corr))
+            current_profile[j] = dist
+
         # 2. Iteratively find k minima with exclusion zones applied
         for kk in range(k):
-             best_idx = -1
-             best_val = np.inf
-             
-             # Find global minimum in current_profile
-             for j in range(limit_search):
-                 val = current_profile[j]
-                 if val < best_val:
-                     best_val = val
-                     best_idx = j
-            
-             if best_idx == -1:
-                 break
-                 
-             out_dist[i, kk] = best_val
-             out_idx[i, kk] = best_idx
-             out_delta[i, kk] = q_idx - best_idx
-             
-             # Apply exclusion zone around the found match to prevent overlaps
-             # Exclusion range: [best_idx - excl_zone, best_idx + excl_zone]
-             s_excl = max(0, best_idx - excl_zone)
-             e_excl = min(limit_search, best_idx + excl_zone + 1)
-             current_profile[s_excl : e_excl] = np.inf
-                
+            best_idx = -1
+            best_val = np.inf
+
+            # Find global minimum in current_profile
+            for j in range(limit_search):
+                val = current_profile[j]
+                if val < best_val:
+                    best_val = val
+                    best_idx = j
+
+            if best_idx == -1:
+                break
+
+            out_dist[i, kk] = best_val
+            out_idx[i, kk] = best_idx
+            out_delta[i, kk] = q_idx - best_idx
+
+            # Apply exclusion zone around the found match to prevent overlaps
+            # Exclusion range: [best_idx - excl_zone, best_idx + excl_zone]
+            s_excl = max(0, best_idx - excl_zone)
+            e_excl = min(limit_search, best_idx + excl_zone + 1)
+            current_profile[s_excl:e_excl] = np.inf
+
     return out_dist, out_idx, out_delta
+
 
 def get_top_k_motifs_numba(T, m, k=1, l=1, include_itself=False):
     if isinstance(T, pd.Series):
         T = T.values
     T = T.astype(np.float64)
-    
+
     excl_zone = int(np.ceil(m / config.STUMPY_EXCL_ZONE_DENOM))
     means, stds = _compute_rolling_stats(T, m)
-    
+
     if include_itself:
         start_idx_loop = m - 1
         q_offset = m - 1
     else:
         start_idx_loop = m
         q_offset = m
-        
+
     out_dist, out_idx, out_delta = _find_top_k_motifs_numba_core(
-        T, int(m), int(k), int(excl_zone), means, stds, int(start_idx_loop), int(q_offset)
+        T,
+        int(m),
+        int(k),
+        int(excl_zone),
+        means,
+        stds,
+        int(start_idx_loop),
+        int(q_offset),
     )
-    
+
     # Convert inf to nan to match behavior of original function
     out_dist[np.isinf(out_dist)] = np.nan
-    
+
     data = {}
     for kk in range(k):
         data[f"top_{kk+1}_motif_dist"] = out_dist[:, kk]
         data[f"top_{kk+1}_motif_idx"] = out_idx[:, kk]
         data[f"top_{kk+1}_motif_idx_delta"] = out_delta[:, kk]
-        
+
     # Extract points after (Python loop is fast enough for linear extraction)
     for kk in range(k):
         for ll in range(l):
             col_name = f"top_{kk+1}_motif_point_after_{ll+1}"
             col_vals = np.full(len(T), np.nan)
-            
+
             # Vectorized extraction if possible or list comprehension
             idxs = out_idx[:, kk]
-            
+
             # Mask for valid indices
             mask = ~np.isnan(idxs)
             valid_indices = np.where(mask)[0]
-            
+
             for i in valid_indices:
                 idx_neighbor = int(idxs[i])
                 target = idx_neighbor + m + ll
                 if target < len(T):
                     col_vals[i] = T[target]
-            
+
             data[col_name] = col_vals
-            
+
     return pd.DataFrame(data)
+
 
 def get_top_1_motif_slow(T, m, l=1, include_itself=False):
     """Get the motif information for the time series T.
@@ -288,7 +328,7 @@ def get_top_1_motif_slow(T, m, l=1, include_itself=False):
 
     mp = stumpy.stump(T, m=m, ignore_trivial=True)
     # mp = stumpy.gpu_stump(T, m=m, ignore_trivial=True)
-    
+
     top_1_motif_dist = np.full(len(T), np.nan)
     top_1_motif_idx = np.full(len(T), np.nan)
     top_1_motif_idx_delta = np.full(len(T), np.nan)
@@ -319,9 +359,7 @@ def get_top_1_motif_slow(T, m, l=1, include_itself=False):
             top_1_motif_idx_delta[i] = (
                 q_idx - top_1_motif_idx[i]
             )  # how far the top-1 motif is from the query.
-            query = T[
-                q_idx : q_idx + m
-            ]
+            query = T[q_idx : q_idx + m]
             # query = T[
             #     q_idx : q_idx + m
             # ].to_numpy()  # The distance calculation requires they are in NumPy arrays.
@@ -345,52 +383,145 @@ def get_top_1_motif_slow(T, m, l=1, include_itself=False):
 
     return df_motif
 
-def get_top_k_motifs_refined(T, m, k=1, l=1):
+# It has some bugs in idx_delta.
+def get_top_k_motifs_slow_2(T, m, k=1, l=1):
     n = len(T)
-    excl_zone = int(np.ceil(m / 4)) # Standard Stumpy exclusion zone
+    excl_zone = int(np.ceil(m / 4))  # Standard Stumpy exclusion zone
 
     dists_out = np.full((n, k), np.nan)
     idxs_out = np.full((n, k), np.nan)
     points_after_out = np.full((n, k, l), np.nan)
 
+    # We start from m because we need a full window of length m to query
     for i in range(m, n):
-        query = T[i-m:i]
-        # 1. Compute distance profile for the past T[:i]
-        # This is the fast Numba-optimized part of Stumpy
+        query = T[i - m : i]
+
+        # 1. Compute distance profile for the whole series
+        # MASS is the lightning-fast Numba-optimized core of Stumpy
         dist_prof = stumpy.core.mass(query, T)
-        
-        # 2. Mask the "future" and the current query's immediate vicinity
-        # We only want matches that happened in the past
-        dist_prof[i - m - excl_zone:] = np.inf 
-        
+
+        # 2. Mask the "future" and the current query's vicinity
+        # This ensures we only find historical motifs
+        # We mask everything from (current_start - excl_zone) to the end
+        dist_prof[max(0, i - m - excl_zone) :] = np.inf
+
         # 3. Iteratively find k non-overlapping matches
         for kk in range(k):
             best_match_idx = np.argmin(dist_prof)
             min_dist = dist_prof[best_match_idx]
-            
-            # If we hit infinity, there are no more valid matches in the past
+
+            # If the best remaining match is infinity, no more valid motifs exist
             if min_dist == np.inf:
                 break
-                
+
             dists_out[i, kk] = min_dist
             idxs_out[i, kk] = best_match_idx
-            
-            # Extract points after
+
+            # 4. Extract points after the motif (for forecasting/analysis)
             after_start = int(best_match_idx + m)
             after_end = after_start + l
             p = T[after_start : min(after_end, n)]
             if len(p) > 0:
-                points_after_out[i, kk, :len(p)] = p
+                points_after_out[i, kk, : len(p)] = p
 
-            # 4. Apply exclusion zone around this match to prevent overlaps
+            # 5. Apply exclusion zone around THIS specific match
+            # so the next 'k' isn't just a 1-pixel shift of this one
             start_mask = max(0, best_match_idx - excl_zone)
             end_mask = min(n, best_match_idx + excl_zone + 1)
             dist_prof[start_mask:end_mask] = np.inf
 
-    # ... (DataFrame construction logic same as before) ...
-    return build_df(dists_out, idxs_out, points_after_out, n, k, l)
+    # Construct the final DataFrame
+    data = {}
+    for kk in range(k):
+        data[f"top_{kk+1}_motif_dist"] = dists_out[:, kk]
+        data[f"top_{kk+1}_motif_idx"] = idxs_out[:, kk]
+        data[f"top_{kk+1}_motif_idx_delta"] = np.arange(n) - idxs_out[:, kk]
+        for ll in range(l):
+            data[f"top_{kk+1}_motif_point_after_{ll+1}"] = points_after_out[:, kk, ll]
 
-def get_top_k_motifs(T, m, k=1, l=1, include_itself=False):
+    return pd.DataFrame(data)
+
+
+def _compute_motif_for_idx(i, T, m, k, l, excl_zone):
+    n = len(T)
+    # Ensure float64 for stumpy
+    query = T[i - m : i]
+    
+    # 1. Compute distance profile
+    # mass checks inputs, but we assume T is clean
+    dist_prof = stumpy.core.mass(query, T)
+    
+    # 2. Mask future: from (i - m - excl_zone) to end
+    mask_start = max(0, i - m - excl_zone)
+    dist_prof[mask_start:] = np.inf
+    
+    dists = np.full(k, np.nan)
+    idxs = np.full(k, np.nan)
+    points_after = np.full((k, l), np.nan)
+    
+    for kk in range(k):
+        best_match_idx = np.argmin(dist_prof)
+        min_dist = dist_prof[best_match_idx]
+        
+        if min_dist == np.inf:
+            break
+            
+        dists[kk] = min_dist
+        idxs[kk] = best_match_idx
+        
+        # Points after
+        after_start = int(best_match_idx + m)
+        after_end = after_start + l
+        # Safe slice
+        chunk = T[after_start : min(after_end, n)]
+        if len(chunk) > 0:
+            points_after[kk, :len(chunk)] = chunk
+            
+        # Apply exclusion
+        s_excl = max(0, best_match_idx - excl_zone)
+        e_excl = min(n, best_match_idx + excl_zone + 1)
+        dist_prof[s_excl:e_excl] = np.inf
+        
+    return i, dists, idxs, points_after
+
+
+def get_top_k_motifs_parallel(T, m, k=1, l=1, n_jobs=-1):
+    n = len(T)
+    if isinstance(T, pd.Series):
+        T = T.values
+    T = T.astype(np.float64)
+    
+    excl_zone = int(np.ceil(m / 4))
+    
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(_compute_motif_for_idx)(i, T, m, k, l, excl_zone) 
+        for i in range(m, n)
+    )
+    
+    dists_out = np.full((n, k), np.nan)
+    idxs_out = np.full((n, k), np.nan)
+    points_after_out = np.full((n, k, l), np.nan)
+    
+    for res in results:
+        i, dists, idxs, points = res
+        dists_out[i] = dists
+        idxs_out[i] = idxs
+        points_after_out[i] = points
+        
+    data = {}
+    for kk in range(k):
+        data[f"top_{kk+1}_motif_dist"] = dists_out[:, kk]
+        data[f"top_{kk+1}_motif_idx"] = idxs_out[:, kk]
+        # Delta: query_start (i-m) - match_start (idx)
+        data[f"top_{kk+1}_motif_idx_delta"] = (np.arange(n) - m) - idxs_out[:, kk]
+        
+        for ll in range(l):
+            data[f"top_{kk+1}_motif_point_after_{ll+1}"] = points_after_out[:, kk, ll]
+            
+    return pd.DataFrame(data)
+
+
+def get_top_k_motifs_slow(T, m, k=1, l=1, include_itself=False):
     # https://github.com/stumpy-dev/stumpy/discussions/1093#discussioncomment-14063985
 
     # print("get_top_k_motifs")
@@ -430,10 +561,10 @@ def get_top_k_motifs(T, m, k=1, l=1, include_itself=False):
                 end_slice_idx = matches[kk, 1] + m + l
                 # Slice T safely; NumPy handles out-of-bound end index by truncating
                 points = T[start_slice_idx:end_slice_idx]
-                
+
                 # Assign what we found. If points is shorter than l, only fill the beginning.
                 if len(points) > 0:
-                    top_k_motif_points_after[i, kk, :len(points)] = points
+                    top_k_motif_points_after[i, kk, : len(points)] = points
     top_k_motif_dist_cols = {
         f"top_{kk+1}_motif_dist": top_k_motif_dist[:, kk] for kk in range(k)
     }
