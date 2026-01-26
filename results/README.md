@@ -7,7 +7,7 @@
 
 - `include_motif_information`
   - `0`: GBRT (Baseline)
-  - `1`: GBRT-NN: With the immediate subsequence of `no_points_after_motif` of the NN
+  - `1`: GBRT-NN: With the immediate subsequence (of length `l`) of `no_points_after_motif` of the NN
     - `2`: Pairwise: Same but use pairwise change instead of raw values of the immediate subsequence
   - `3`: GBRT-NN<sup>+</sup>: With the target value of the last point of the NN on top of `1`
     - `4`: Pairwise
@@ -15,10 +15,13 @@
     - `6`: Pairwise
   - `7`: GBRT-NNC: With the covariates of the last point of the NN on top of `1` 
     - `8`: Pairwise
-  - `9`: GBRT-NNC<sup>+</sup>: With the covariates and the target value of the last point of the NN on top of `1` 
+  - `9`: GBRT-NNC<sup>+</sup>: With the covariates of the last point of the NN on top of `3` 
     - `10`: Pairwise
-  - `11`: GBRT-NNC<sup>++</sup>: With the covariates of the last point and the target value of all the points of the NN on top of `1` 
+  - `11`: GBRT-NNC<sup>++</sup>: With the covariates of the last point of the NN on top of `5` 
     - `12`: Pairwise
+  - `13`: GBRT-kNN version of `1`
+  - `15`: GBRT-kNN version of `3`
+  - `17`: GBRT-kNN version of `5`
 
 ## Test on my notebook computer
 

@@ -7,11 +7,11 @@ import warnings
 from joblib import Parallel, delayed
 
 # import sys, os
-from numba import njit, prange
+from numba import njit, prange, objmode
 
 # from numba import set_num_threads, get_num_threads
 # set_num_threads(8)
-# from scipy.signal import convolve
+from scipy.signal import convolve
 
 
 @njit(cache=True)
@@ -186,9 +186,10 @@ def _find_top_k_motifs_numba_core(
         # 1. Compute distances for all j
         current_profile = np.full(limit_search, np.inf)
 
-        # Qr = np.flipud(T[q_idx : q_idx + m])
-        # QT = convolve(Qr, T)
-        # QT = QT.real[m - 1 : n]
+        # with objmode(QT="float64[:]"):
+        #     Qr = np.flipud(T[q_idx : q_idx + m])
+        #     QT_raw = convolve(Qr, T)
+        #     QT = np.ascontiguousarray(QT_raw.real[m - 1 : n])
 
         for j in range(limit_search):
             mu_c = means[j]
@@ -293,6 +294,24 @@ def get_top_k_motifs_numba(T, m, k=1, l=1, include_itself=False):
             for i in valid_indices:
                 idx_neighbor = int(idxs[i])
                 target = idx_neighbor + m + ll
+                if target < len(T):
+                    col_vals[i] = T[target]
+
+            data[col_name] = col_vals
+
+    # Extract points before (the motif itself)
+    for kk in range(k):
+        idxs = out_idx[:, kk]
+        mask = ~np.isnan(idxs)
+        valid_indices = np.where(mask)[0]
+
+        for mm in range(m):
+            col_name = f"top_{kk+1}_motif_point_before_{mm+1}"
+            col_vals = np.full(len(T), np.nan)
+
+            for i in valid_indices:
+                idx_neighbor = int(idxs[i])
+                target = idx_neighbor + mm
                 if target < len(T):
                     col_vals[i] = T[target]
 
