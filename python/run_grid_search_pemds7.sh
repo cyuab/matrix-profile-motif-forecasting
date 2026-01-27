@@ -41,19 +41,19 @@ echo "For pemds7..."
 #     --include_similarity True False
 
 # k-NN
-# echo "Starting Grid Search: pemds7, include_motif_information=13, 15, 17"
-# python grid_search_pemds7.py \
-#     --include_covariates True False \
-#     --include_motif_information 13 15 17 \
-#     --k_motifs 3 5 7 \
-#     --no_points_after_motif 9 \
-#     --include_similarity True False
+echo "Starting Grid Search: pemds7, include_motif_information=13, 15, 17"
+python grid_search_pemds7.py \
+    --include_covariates True False \
+    --include_motif_information 13 15 17 \
+    --k_motifs 2 3 \
+    --no_points_after_motif 9 \
+    --include_similarity True
 
 echo "Starting Grid Search: pemds7, include_motif_information=19, 21, 23"
 python grid_search_pemds7.py \
     --include_covariates True \
     --include_motif_information 19 21 23 \
-    --k_motifs 3 5 7 \
+    --k_motifs 2 3 \
     --no_points_after_motif 9 \
     --include_similarity True
 # ==========================================================
