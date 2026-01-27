@@ -11,7 +11,7 @@ random.seed(42)
 from datetime import datetime, timedelta
 from sklearn import preprocessing
 from GBRT_for_TSF.utils import evaluate_with_xgboost
-from mpmf.utils import get_top_1_motif_numba
+from mpmf.utils import get_top_1_motif_numba, get_top_k_motifs_numba
 
 import itertools
 import argparse  # Added for command line arguments
@@ -76,51 +76,62 @@ def New_preprocessing(
     #################################################################################################
     if include_motif_information:
         # include_motif_information: 1:12; Odds: raw values; Evens: trend values
-        df_motif = get_top_1_motif_numba(
-                TimeSeries,
-                num_periods_input,
-                l=no_points_after_motif,
-                include_itself=include_itself,
-                compute_trend=(include_motif_information == 2 or include_motif_information == 4 or include_motif_information == 6 or include_motif_information == 8 or include_motif_information == 10 or include_motif_information == 12)
-            )
+        if 1 <= include_motif_information <=12 :
+            df_motif = get_top_1_motif_numba(
+                    TimeSeries,
+                    num_periods_input,
+                    l=no_points_after_motif,
+                    include_itself=include_itself,
+                    compute_trend=(include_motif_information == 2 or include_motif_information == 4 or include_motif_information == 6 or include_motif_information == 8 or include_motif_information == 10 or include_motif_information == 12)
+                )
+        else:
+            df_motif = get_top_k_motifs_numba(TimeSeries, num_periods_input, k_motifs, l=no_points_after_motif, include_itself=include_itself)
         df_motif_points_after = df_motif[[c for c in df_motif.columns if ("point_after" in c)]]
         if do_normalization:
             df_motif_points_after = df_motif_points_after.sub(df_motif_points_after.mean(axis=1), axis=0).div(df_motif_points_after.std(axis=1, ddof=0), axis=0) # Use Population Standard Deviation (ddof=0)
             df_motif_points_after = df_motif_points_after.replace([np.inf, -np.inf], np.nan)
         Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_points_after], axis=1)
         # Add motif points before
-        if include_motif_information in [3, 4, 5, 6, 9, 10, 11, 12]: # No 7, 8
+        if include_motif_information in [3, 4, 5, 6, 9, 10, 11, 12, 15 ,17, 21, 23]: # No 7, 8
             df_motif_points_before = df_motif[[c for c in df_motif.columns if ("point_before" in c)]]
             if do_normalization:
                 df_motif_points_before = df_motif_points_before.sub(df_motif_points_before.mean(axis=1), axis=0).div(df_motif_points_before.std(axis=1, ddof=0), axis=0) # Use Population Standard Deviation (ddof=0)
                 df_motif_points_before = df_motif_points_before.replace([np.inf, -np.inf], np.nan)
-            if include_motif_information in [3, 4, 9, 10]:
+            if include_motif_information in [3, 4, 9, 10, 15, 21]:
                 # print("df_motif_points_before shape before slicing:", df_motif_points_before.shape)
                 df_motif_points_before = df_motif_points_before.iloc[:, -1:]  # only last point
                 # print("df_motif_points_before shape after slicing:", df_motif_points_before.shape)
             else:
                 pass  # all y points
             Normalized_Data_df = pd.concat([Normalized_Data_df, df_motif_points_before], axis=1)
-        if 7 <= include_motif_information <= 12:
-            top_1_idx = df_motif[["top_1_motif_idx"]]
-            last_point_idx = top_1_idx + num_periods_input -1
-            # print("last_point_idx:", last_point_idx)
-            # Retrieve time features, handling NaNs in last_point_idx
-            idx_values = last_point_idx.values.flatten()
-            valid_mask = np.isfinite(idx_values)
-            
-            # Create container filled with NaNs
-            motif_time_features = np.full((len(idx_values), New_sub.shape[1]), np.nan)
-            
-            if np.any(valid_mask):
-                valid_indices = idx_values[valid_mask].astype(int)
-                motif_time_features[valid_mask] = New_sub[valid_indices]
+        if (7 <= include_motif_information <= 12) or (include_motif_information in [19, 21, 23]):
+            current_k = 1
+            while f"top_{current_k}_motif_idx" in df_motif.columns:
+                col_name = f"top_{current_k}_motif_idx"
+                current_idx_col = df_motif[[col_name]]
+                
+                last_point_idx = current_idx_col + num_periods_input - 1
+                
+                # Retrieve time features, handling NaNs in last_point_idx
+                idx_values = last_point_idx.values.flatten()
+                valid_mask = np.isfinite(idx_values)
+                
+                # Create container filled with NaNs
+                motif_time_features = np.full((len(idx_values), New_sub.shape[1]), np.nan)
+                
+                if np.any(valid_mask):
+                    valid_indices = idx_values[valid_mask].astype(int)
+                    motif_time_features[valid_mask] = New_sub[valid_indices]
 
-            motif_feat_df = pd.DataFrame(motif_time_features, columns=[
-                "month_motif", "day_motif", "hour_motif",
-                "day_of_week_motif", "day_of_year_motif", "week_of_year_motif"
-            ])
-            Normalized_Data_df = pd.concat([Normalized_Data_df, motif_feat_df], axis=1)
+                suffix = "" if current_k == 1 else f"_{current_k}"
+                
+                motif_feat_df = pd.DataFrame(motif_time_features, columns=[
+                    f"month_motif{suffix}", f"day_motif{suffix}", f"hour_motif{suffix}",
+                    f"day_of_week_motif{suffix}", f"day_of_year_motif{suffix}", f"week_of_year_motif{suffix}"
+                ])
+                Normalized_Data_df = pd.concat([Normalized_Data_df, motif_feat_df], axis=1)
+                
+                current_k += 1
 
 
         if include_similarity:
@@ -150,8 +161,7 @@ def New_preprocessing(
     next = 0
     x_batches = []
     y_batches = []
-    limit = max(num_periods_input, num_periods_output)
-    while next + limit < end:
+    while next + (num_periods_input + num_periods_output) < end:
         next = start + num_periods_input
         x_batches.append(Train[start:next, :])
         y_batches.append(Train[next : next + num_periods_output, 0])
@@ -166,11 +176,11 @@ def New_preprocessing(
     next_test = 0
     x_testbatches = []
     y_testbatches = []
-    while next_test + limit < end_test:
+    while next_test + (num_periods_input + num_periods_output) < end_test:
         next_test = start_test + num_periods_input
         x_testbatches.append(Test[start_test:next_test, :])
         y_testbatches.append(Test[next_test : next_test + num_periods_output, 0])
-        start_test = start_test + num_periods_input
+        start_test = start_test + 1
     y_testbatches = np.asarray(y_testbatches)
     y_testbatches = y_testbatches.reshape(-1, num_periods_output, 1)
     x_testbatches = np.asarray(x_testbatches)
