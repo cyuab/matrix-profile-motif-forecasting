@@ -6,10 +6,11 @@
 ## Input parameters
 
 - `include_motif_information`
-  - `0`: GBRT (Baseline)
-  - `1`: GBRT-NN: With the immediate subsequence (of length `l`) of `no_points_after_motif` of the NN
-    - `2`: Pairwise: Same but use pairwise change instead of raw values of the immediate subsequence
+  - Baseline 
+    - `0`: GBRT (Original)
   - 1-NN
+    - `1`: GBRT-NN: With the immediate subsequence (of length `l`) of `no_points_after_motif` of the NN
+      - `2`: Pairwise (trend): Same but use pairwise change instead of raw values of the immediate subsequence
     - `3`: GBRT-NN<sup>+</sup>: With the target value of the last point of the NN on top of `1`
       - `4`: Pairwise
     - `5`: GBRT-NN<sup>++</sup>: With the target value of all the points of the NN on top of `1`
@@ -29,6 +30,9 @@
       - `19`: GBRT-kNN version of `7`
       - `21`: GBRT-kNN version of `9`
       - `23`: GBRT-kNN version of `11`
+  - Remarks
+    - “-S”: With similarity
+    - Odd numbers: Raw value; Even numbers: Pairwise (trend)
 
 ## Test on my notebook computer
 
