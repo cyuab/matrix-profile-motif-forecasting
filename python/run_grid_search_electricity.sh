@@ -56,6 +56,7 @@ python grid_search_electricity.py \
     --k_motifs 2 3 \
     --no_points_after_motif 24 \
     --include_similarity True
+
 # ==========================================================
 
 echo "All grid searches completed successfully."
