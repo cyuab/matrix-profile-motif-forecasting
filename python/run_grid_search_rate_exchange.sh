@@ -40,21 +40,21 @@ echo "For rate_exchange..."
 #     --include_similarity True False
 
 # k-NN
-echo "Starting Grid Search: rate_exchange, include_motif_information=13, 15, 17"
-python grid_search_rate_exchange.py \
-    --include_covariates True False \
-    --include_motif_information 13 15 17 \
-    --k_motifs 2 3 \
-    --no_points_after_motif 6 \
-    --include_similarity True
+# echo "Starting Grid Search: rate_exchange, include_motif_information=13, 15, 17"
+# python grid_search_rate_exchange.py \
+#     --include_covariates True False \
+#     --include_motif_information 13 15 17 \
+#     --k_motifs 2 3 \
+#     --no_points_after_motif 6 \
+#     --include_similarity True
 
-echo "Starting Grid Search: rate_exchange, include_motif_information=19, 21, 23"
-python grid_search_rate_exchange.py \
-    --include_covariates True \
-    --include_motif_information 19 21 23 \
-    --k_motifs 2 3 \
-    --no_points_after_motif 6 \
-    --include_similarity True
+# echo "Starting Grid Search: rate_exchange, include_motif_information=19, 21, 23"
+# python grid_search_rate_exchange.py \
+#     --include_covariates True \
+#     --include_motif_information 19 21 23 \
+#     --k_motifs 2 3 \
+#     --no_points_after_motif 6 \
+#     --include_similarity True
 # ==========================================================
 
 echo "All grid searches completed successfully."
