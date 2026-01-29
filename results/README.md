@@ -16,11 +16,11 @@
     - `5`: GBRT-NN<sup>++</sup>: With the target value of all the points of the NN on top of `1`
       - `6`: Pairwise
     - Covariates 
-      - `7`: GBRT-NNC: With the covariates of the last point of the NN on top of `1` 
+      - `7`: GBRT-NN-C: With the covariates of the last point of the NN on top of `1` 
         - `8`: Pairwise
-      - `9`: GBRT-NNC<sup>+</sup>: With the covariates of the last point of the NN on top of `3` 
+      - `9`: GBRT-NN<sup>+</sup>-C: With the covariates of the last point of the NN on top of `3` 
         - `10`: Pairwise
-      - `11`: GBRT-NNC<sup>++</sup>: With the covariates of the last point of the NN on top of `5` 
+      - `11`: GBRT-NN<sup>++</sup>-C: With the covariates of the last point of the NN on top of `5` 
         - `12`: Pairwise
   - k-NN
     - `13`: GBRT-kNN version of `1`
