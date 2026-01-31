@@ -1,0 +1,3 @@
+include_covariates,include_itself,include_motif_information,k_motifs,no_points_after_motif,do_normalization,include_similarity,RMSE,WAPE,MAE,MAPE,Time_Processing,Time_Overall
+True,True,17,3,24,False,True,132.14586,0.08848958,49.011433,inf,175.65143585205078,1285.9283208847046
+False,True,17,3,24,False,True,145.0039,0.09911148,54.894554,inf,209.58399295806885,16289.153815984726

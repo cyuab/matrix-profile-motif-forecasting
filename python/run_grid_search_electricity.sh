@@ -41,53 +41,85 @@ echo "For electricity..."
 #     --include_similarity True False
 
 # k-NN
-echo "Starting Grid Search: electricity, include_motif_information=13, 15, 17"
-python grid_search_electricity.py \
-    --include_covariates True False \
-    --include_motif_information 13 \
-    --k_motifs 2 3 \
-    --no_points_after_motif 24 \
-    --include_similarity True
+# echo "Starting Grid Search: electricity, include_motif_information=13"
+# python grid_search_electricity.py \
+#     --include_covariates True False \
+#     --include_motif_information 13 \
+#     --k_motifs 2 3 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
 
-echo "Starting Grid Search: electricity, include_motif_information=13, 15, 17"
-python grid_search_electricity.py \
-    --include_covariates True False \
-    --include_motif_information 15 \
-    --k_motifs 2 3 \
-    --no_points_after_motif 24 \
-    --include_similarity True
+# echo "Starting Grid Search: electricity, include_motif_information=15"
+# python grid_search_electricity.py \
+#     --include_covariates True False \
+#     --include_motif_information 15 \
+#     --k_motifs 2 3 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
 
-echo "Starting Grid Search: electricity, include_motif_information=13, 15, 17"
-python grid_search_electricity.py \
-    --include_covariates True False \
-    --include_motif_information 17 \
-    --k_motifs 2 3 \
-    --no_points_after_motif 24 \
-    --include_similarity True
+# echo "Starting Grid Search: electricity, include_motif_information=17"
+# python grid_search_electricity.py \
+#     --include_covariates True False \
+#     --include_motif_information 17 \
+#     --k_motifs 2 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
 
-echo "Starting Grid Search: electricity, include_motif_information=19, 21, 23"
-python grid_search_electricity.py \
-    --include_covariates True \
-    --include_motif_information 19 \
-    --k_motifs 2 3 \
-    --no_points_after_motif 24 \
-    --include_similarity True
+# echo "Starting Grid Search: electricity, include_motif_information=17"
+# python grid_search_electricity.py \
+#     --include_covariates True False \
+#     --include_motif_information 17 \
+#     --k_motifs 3 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
 
-echo "Starting Grid Search: electricity, include_motif_information=19, 21, 23"
-python grid_search_electricity.py \
-    --include_covariates True \
-    --include_motif_information 21 \
-    --k_motifs 2 3 \
-    --no_points_after_motif 24 \
-    --include_similarity True
+# echo "Starting Grid Search: electricity, include_motif_information=19"
+# python grid_search_electricity.py \
+#     --include_covariates True \
+#     --include_motif_information 19 \
+#     --k_motifs 2 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
 
-echo "Starting Grid Search: electricity, include_motif_information=19, 21, 23"
-python grid_search_electricity.py \
-    --include_covariates True \
-    --include_motif_information 23 \
-    --k_motifs 2 3 \
-    --no_points_after_motif 24 \
-    --include_similarity True
+# echo "Starting Grid Search: electricity, include_motif_information=19"
+# python grid_search_electricity.py \
+#     --include_covariates True \
+#     --include_motif_information 19 \
+#     --k_motifs 3 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
+
+# echo "Starting Grid Search: electricity, include_motif_information=21"
+# python grid_search_electricity.py \
+#     --include_covariates True \
+#     --include_motif_information 21 \
+#     --k_motifs 2 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
+
+# echo "Starting Grid Search: electricity, include_motif_information=21"
+# python grid_search_electricity.py \
+#     --include_covariates True \
+#     --include_motif_information 21 \
+#     --k_motifs 3 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
+
+# echo "Starting Grid Search: electricity, include_motif_information=23"
+# python grid_search_electricity.py \
+#     --include_covariates True \
+#     --include_motif_information 23 \
+#     --k_motifs 2 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
+
+# echo "Starting Grid Search: electricity, include_motif_information=23"
+# python grid_search_electricity.py \
+#     --include_covariates True \
+#     --include_motif_information 23 \
+#     --k_motifs 3 \
+#     --no_points_after_motif 24 \
+#     --include_similarity True
 
 # ==========================================================
 
