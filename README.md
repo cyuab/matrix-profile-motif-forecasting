@@ -1,8 +1,8 @@
 # Leveraging Nearest Neighbors for Time Series Forecasting with Matrix Profile
 
-<img src="figures/visualize_matrix_profile.pptx.svg" alt="Matrix Profile." width="400">
+<img src="figures/visualize_matrix_profile.pptx.svg" alt="Matrix Profile." width="500">
 
-## Notifications
+<!-- ## Notifications -->
 
 ## Installation
 
@@ -57,6 +57,10 @@
 ### Data/Code for the Figures/Tables
 
 - [[fig:visualize-matrix-profile]](python/plot_visualize_matrix_profile.ipynb)
+
+## Resources
+
+- [stumpy](https://stumpy.readthedocs.io/en/latest/) (Matrix Profile)
 
 ## References
 
